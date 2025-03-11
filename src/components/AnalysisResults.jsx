@@ -845,8 +845,8 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
         <Card>
           <CardHeader>
             <CardTitle>Needs Analysis</CardTitle>
-            <CardDescription>Error: Invalid result structure</CardDescription>
-          </CardHeader><CardContent>
+            <CardDescription>Error: Invalid result structure</CardDescription><CardHeader>
+            <CardContent>
             <div className="text-red-500">
               Unable to display needs analysis results. The data structure is invalid.
             </div>
@@ -943,16 +943,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
    * - Improved UI organization and readability
    */
   const renderDemandAnalysis = (result) => {
-    if (!result) {
-      return (
-        <div className="p-4 text-center">
-          <p className="text-muted-foreground">Run the Demand Analyst agent to see results here.</p>
-        </div>
-      );
-    }
-
-    // Add error handling for missing data structure
-    if (!result.demandLevel || !result.reasoning || !result.reasoning.summary) {
+    if (!result || !result.demandAnalysis || !result.demandAnalysis.level1Indicators) {
       console.error("Invalid demand analysis result structure:", result);
       return <div className="p-4 text-center">
         <p className="text-muted-foreground">Error: Demand analysis results are incomplete or malformed. Please try running the analysis again.</p>
@@ -999,13 +990,13 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {result.analysis[`level${level}Indicators`].map((indicator, index) => (
+                        {result.analysis[`level${level}Indicators`] && result.analysis[`level${level}Indicators`].map((indicator, index) => (
                           <div key={index} className="text-sm">
                             <p className="italic text-muted-foreground">"{indicator.quote}"</p>
                             <p className="text-xs text-muted-foreground mt-1">Context: {indicator.context}</p>
                           </div>
                         ))}
-                        {result.analysis[`level${level}Indicators`].length === 0 && (
+                        {result.analysis[`level${level}Indicators`] && result.analysis[`level${level}Indicators`].length === 0 && (
                           <p className="text-sm text-muted-foreground">No indicators found for this level</p>
                         )}
                       </div>
