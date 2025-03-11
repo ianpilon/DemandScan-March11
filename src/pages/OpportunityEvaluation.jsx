@@ -813,6 +813,15 @@ const OpportunityEvaluation = () => {
         }
       );
       
+      // Ensure demandAnalyst results are properly stored
+      setLocalAnalysisResults(prev => ({
+        ...prev,
+        demandAnalyst: demandAnalystResult
+      }));
+      
+      // Wait for state update to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Continue with the rest of sequence
       await runNextAgentInSequence();
 

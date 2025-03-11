@@ -302,7 +302,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
     }
 
     const gainAnalysis = result.gainAnalysis;
-    
+
     if (!gainAnalysis || !gainAnalysis.identifiedGains) {
       return (
         <div className="p-4 text-center">
@@ -587,7 +587,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
                 <div className="col-span-4">Description</div>
                 <div className="col-span-5">Indicators</div>
               </div>
-              
+
               {/* Rows */}
               <PainLevelRow
                 score={1}
@@ -846,8 +846,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
           <CardHeader>
             <CardTitle>Needs Analysis</CardTitle>
             <CardDescription>Error: Invalid result structure</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </CardHeader><CardContent>
             <div className="text-red-500">
               Unable to display needs analysis results. The data structure is invalid.
             </div>
@@ -950,6 +949,12 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
           <p className="text-muted-foreground">Run the Demand Analyst agent to see results here.</p>
         </div>
       );
+    }
+
+    // Add error handling for missing data structure
+    if (!result.demandLevel || !result.demandLevel.summary || !result.reasoning || !result.reasoning.summary) {
+      console.error("Invalid demand analysis result structure:", result);
+      return <div>Error: Demand analysis results are incomplete or malformed</div>;
     }
 
     const getDemandLevelBadge = (level) => {
@@ -1505,7 +1510,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Analysis Summary</h3>
                   <p className="text-sm text-muted-foreground">{result.analysis.summary}</p>
-                  
+
                   <div>
                     <h4 className="text-sm font-medium mb-2">Primary Gains:</h4>
                     <ul className="list-disc pl-5 space-y-1">
@@ -1578,7 +1583,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Analysis Summary</h3>
                   <p className="text-sm text-muted-foreground">{result.analysis.summary}</p>
-                  
+
 
 
                   {result.analysis.limitations.length > 0 && (
@@ -1617,7 +1622,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
     const jsonString = JSON.stringify(result, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `${showResult}_results.json`;
@@ -1684,7 +1689,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
             <Button
               variant="outline"
               onClick={handleDownload}
-              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-300"
+              className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:border-blue-3000"
             >
               Download Results
             </Button>
