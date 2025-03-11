@@ -1,0 +1,148 @@
+demandAnalyst completed - immediately setting hasAnalyzed=true
+OpportunityEvaluation.jsx:369 Updating progress for demandAnalyst: 100%, status: success
+OpportunityEvaluation.jsx:580 Agent demandAnalyst completed successfully with progress 100%
+OpportunityEvaluation.jsx:609 Sequence is not running, stopping
+OpportunityEvaluation.jsx:820 Analysis sequence completed, explicitly setting final states
+OpportunityEvaluation.jsx:825 Selecting appropriate result to display
+OpportunityEvaluation.jsx:847 Final analysis state: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+2AnalysisResults.jsx:843 Invalid needs analysis result structure: undefined
+renderNeedsAnalysis @ AnalysisResults.jsx:843Understand this errorAI
+OpportunityEvaluation.jsx:964 💯 Checking if we should set hasAnalyzed=true
+OpportunityEvaluation.jsx:965 Has needsAnalysis results: false
+OpportunityEvaluation.jsx:971 ✅ We have some results! Setting hasAnalyzed=true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AnalysisResults.jsx:984 Uncaught TypeError: Cannot read properties of undefined (reading 'summary')
+    at renderDemandAnalysis (AnalysisResults.jsx:984:80)
+    at renderResults (AnalysisResults.jsx:1653:16)
+    at AnalysisResults (AnalysisResults.jsx:1695:12)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=801f65c4:11548:26)
+    at updateFunctionComponent (chunk-NFC5BX5N.js?v=801f65c4:14582:28)
+    at beginWork (chunk-NFC5BX5N.js?v=801f65c4:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-NFC5BX5N.js?v=801f65c4:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-NFC5BX5N.js?v=801f65c4:3699:24)
+    at invokeGuardedCallback (chunk-NFC5BX5N.js?v=801f65c4:3733:39)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=801f65c4:19765:15)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=801f65c4:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=801f65c4:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=801f65c4:19116:15)
+    at performConcurrentWorkOnRoot (chunk-NFC5BX5N.js?v=801f65c4:18678:83)
+    at workLoop (chunk-NFC5BX5N.js?v=801f65c4:197:42)
+    at flushWork (chunk-NFC5BX5N.js?v=801f65c4:176:22)Understand this errorAI
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for needsAnalysis: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for demandAnalyst: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityAgentSelection.jsx:41 📊 Demand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AnalysisResults.jsx:984 Uncaught TypeError: Cannot read properties of undefined (reading 'summary')
+    at renderDemandAnalysis (AnalysisResults.jsx:984:80)
+    at renderResults (AnalysisResults.jsx:1653:16)
+    at AnalysisResults (AnalysisResults.jsx:1695:12)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=801f65c4:11548:26)
+    at updateFunctionComponent (chunk-NFC5BX5N.js?v=801f65c4:14582:28)
+    at beginWork (chunk-NFC5BX5N.js?v=801f65c4:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-NFC5BX5N.js?v=801f65c4:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-NFC5BX5N.js?v=801f65c4:3699:24)
+    at invokeGuardedCallback (chunk-NFC5BX5N.js?v=801f65c4:3733:39)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=801f65c4:19765:15)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=801f65c4:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=801f65c4:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=801f65c4:19116:15)
+    at recoverFromConcurrentError (chunk-NFC5BX5N.js?v=801f65c4:18736:28)
+    at performConcurrentWorkOnRoot (chunk-NFC5BX5N.js?v=801f65c4:18684:30)
+    at workLoop (chunk-NFC5BX5N.js?v=801f65c4:197:42)Understand this errorAI
+chunk-NFC5BX5N.js?v=801f65c4:14032 The above error occurred in the <AnalysisResults> component:
+
+    at AnalysisResults (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/src/components/AnalysisResults.jsx:52:28)
+    at div
+    at _c (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/src/components/ui/card.jsx:20:11)
+    at div
+    at div
+    at div
+    at OpportunityEvaluation (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/src/pages/OpportunityEvaluation.jsx:197:39)
+    at RenderedRoute (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/react-router-dom.js?v=801f65c4:4088:5)
+    at Routes (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/react-router-dom.js?v=801f65c4:4558:5)
+    at div
+    at div
+    at Router (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/react-router-dom.js?v=801f65c4:4501:15)
+    at BrowserRouter (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/react-router-dom.js?v=801f65c4:5247:5)
+    at Provider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/chunk-GUMDNB62.js?v=801f65c4:38:15)
+    at TooltipProvider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=801f65c4:2277:5)
+    at QueryClientProvider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/node_modules/.vite/deps/@tanstack_react-query.js?v=801f65c4:2835:3)
+    at App (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3002/src/App.jsx:32:49)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-NFC5BX5N.js?v=801f65c4:14032Understand this errorAI
+chunk-NFC5BX5N.js?v=801f65c4:19413 Uncaught TypeError: Cannot read properties of undefined (reading 'summary')
+    at renderDemandAnalysis (AnalysisResults.jsx:984:80)
+    at renderResults (AnalysisResults.jsx:1653:16)
+    at AnalysisResults (AnalysisResults.jsx:1695:12)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=801f65c4:11548:26)
+    at updateFunctionComponent (chunk-NFC5BX5N.js?v=801f65c4:14582:28)
+    at beginWork (chunk-NFC5BX5N.js?v=801f65c4:15924:22)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=801f65c4:19753:22)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=801f65c4:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=801f65c4:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=801f65c4:19116:15)
+    at recoverFromConcurrentError (chunk-NFC5BX5N.js?v=801f65c4:18736:28)
+    at performConcurrentWorkOnRoot (chunk-NFC5BX5N.js?v=801f65c4:18684:30)
+    at workLoop (chunk-NFC5BX5N.js?v=801f65c4:197:42)
+    at flushWork (chunk-NFC5BX5N.js?v=801f65c4:176:22)
+    at MessagePort.performWorkUntilDeadline (chunk-NFC5BX5N.js?v=801f65c4:384:29)Understand this errorAI
+OpportunityEvaluation.jsx:566 Setting showResult to: demandAnalyst
+OpportunityEvaluation.jsx:380 Cleaning up state for agent: demandAnalyst
+OpportunityEvaluation.jsx:387 Removed demandAnalyst from analyzing agents
