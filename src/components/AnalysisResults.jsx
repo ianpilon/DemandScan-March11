@@ -956,7 +956,7 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
       console.error("Invalid demand analysis result structure:", result);
       return <div className="p-4 text-center">
         <p className="text-muted-foreground">Error: Demand analysis results are incomplete or malformed. Please try running the analysis again.</p>
-      </div>;ormed</div>;
+      </div>;
     }
 
     const getDemandLevelBadge = (level) => {
