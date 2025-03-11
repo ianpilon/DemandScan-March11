@@ -1,0 +1,67 @@
+emand Analyst card state - hasResults: true, isAnalyzing: true, in localResults: true
+OpportunityEvaluation.jsx:297 🔍 isDone Check for opportunityQualification: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for finalReport: Object
+OpportunityEvaluation.jsx:297 🔍 isDone Check for longContextChunking: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AgentCard.jsx:77 Showing green progress bar: Object
+AnalysisResults.jsx:1002 Uncaught TypeError: Cannot read properties of undefined (reading 'level1Indicators')
+    at AnalysisResults.jsx:1002:33
+    at Array.map (<anonymous>)
+    at renderDemandAnalysis (AnalysisResults.jsx:995:28)
+    at renderResults (AnalysisResults.jsx:1660:16)
+    at AnalysisResults (AnalysisResults.jsx:1702:12)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=acc7b60d:11548:26)
+    at updateFunctionComponent (chunk-NFC5BX5N.js?v=acc7b60d:14582:28)
+    at beginWork (chunk-NFC5BX5N.js?v=acc7b60d:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-NFC5BX5N.js?v=acc7b60d:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-NFC5BX5N.js?v=acc7b60d:3699:24)
+    at invokeGuardedCallback (chunk-NFC5BX5N.js?v=acc7b60d:3733:39)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=acc7b60d:19765:15)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=acc7b60d:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=acc7b60d:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=acc7b60d:19116:15)
+    at recoverFromConcurrentError (chunk-NFC5BX5N.js?v=acc7b60d:18736:28)Understand this errorAI
+chunk-NFC5BX5N.js?v=acc7b60d:14032 The above error occurred in the <AnalysisResults> component:
+
+    at AnalysisResults (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/src/components/AnalysisResults.jsx?t=1741707853390:52:28)
+    at div
+    at _c (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/src/components/ui/card.jsx:20:11)
+    at div
+    at div
+    at div
+    at OpportunityEvaluation (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/src/pages/OpportunityEvaluation.jsx?t=1741707853390:197:39)
+    at RenderedRoute (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/react-router-dom.js?v=8f5b91b6:4088:5)
+    at Routes (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/react-router-dom.js?v=8f5b91b6:4558:5)
+    at div
+    at div
+    at Router (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/react-router-dom.js?v=8f5b91b6:4501:15)
+    at BrowserRouter (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/react-router-dom.js?v=8f5b91b6:5247:5)
+    at Provider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/chunk-GUMDNB62.js?v=acc7b60d:38:15)
+    at TooltipProvider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=24fa5b11:2277:5)
+    at QueryClientProvider (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/node_modules/.vite/deps/@tanstack_react-query.js?v=0dae83d0:2835:3)
+    at App (https://75e45e9c-885d-42b6-965d-1d3b0dad2d9b-00-r2faw419s965.riker.replit.dev:3000/src/App.jsx?t=1741707853390:32:49)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-NFC5BX5N.js?v=acc7b60d:14032Understand this errorAI
+chunk-NFC5BX5N.js?v=acc7b60d:19413 Uncaught TypeError: Cannot read properties of undefined (reading 'level1Indicators')
+    at AnalysisResults.jsx:1002:33
+    at Array.map (<anonymous>)
+    at renderDemandAnalysis (AnalysisResults.jsx:995:28)
+    at renderResults (AnalysisResults.jsx:1660:16)
+    at AnalysisResults (AnalysisResults.jsx:1702:12)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=acc7b60d:11548:26)
+    at updateFunctionComponent (chunk-NFC5BX5N.js?v=acc7b60d:14582:28)
+    at beginWork (chunk-NFC5BX5N.js?v=acc7b60d:15924:22)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=acc7b60d:19753:22)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=acc7b60d:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=acc7b60d:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=acc7b60d:19116:15)
+    at recoverFromConcurrentError (chunk-NFC5BX5N.js?v=acc7b60d:18736:28)
+    at performConcurrentWorkOnRoot (chunk-NFC5BX5N.js?v=acc7b60d:18684:30)
+    at workLoop (chunk-NFC5BX5N.js?v=acc7b60d:197:42)
+    at flushWork (chunk-NFC5BX5N.js?v=acc7b60d:176:22)Understand this errorAI
+OpportunityEvaluation.jsx:566 Setting showResult to: demandAnalyst
+OpportunityEvaluation.jsx:380 Cleaning up state for agent: demandAnalyst
+OpportunityEvaluation.jsx:387 Removed demandAnalyst from analyzing agents
