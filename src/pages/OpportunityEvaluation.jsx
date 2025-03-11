@@ -179,8 +179,11 @@ const qualifyOpportunity = async (analysisResults, progressCallback, apiKey) => 
     await new Promise(resolve => setTimeout(resolve, 250));
     progressCallback(60);
     await new Promise(resolve => setTimeout(resolve, 250));
-    progressCallback(70);  // Never go to 100% until complete
+    progressCallback(75);
     await new Promise(resolve => setTimeout(resolve, 250));
+    progressCallback(90);
+    await new Promise(resolve => setTimeout(resolve, 250));
+    progressCallback(100);  // Complete the progress
 
     // Return dummy data for now
     return {
@@ -190,7 +193,9 @@ const qualifyOpportunity = async (analysisResults, progressCallback, apiKey) => 
         problemExperience: 'Strong evidence of problem experience',
         activeSearch: 'Currently evaluating solutions',
         problemFit: 'High alignment with our solution capabilities'
-      }
+      },
+      overallAssessment: "Strong Opportunity",
+      summary: "This opportunity shows significant potential based on the customer's clear problem experience, active search for solutions, and alignment with our capabilities."
     };
   } catch (error) {
     console.error('Error in Opportunity Qualification:', error);
