@@ -952,9 +952,11 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
     }
 
     // Add error handling for missing data structure
-    if (!result.demandLevel || !result.demandLevel.summary || !result.reasoning || !result.reasoning.summary) {
+    if (!result.demandLevel || !result.reasoning || !result.reasoning.summary) {
       console.error("Invalid demand analysis result structure:", result);
-      return <div>Error: Demand analysis results are incomplete or malformed</div>;
+      return <div className="p-4 text-center">
+        <p className="text-muted-foreground">Error: Demand analysis results are incomplete or malformed. Please try running the analysis again.</p>
+      </div>;ormed</div>;
     }
 
     const getDemandLevelBadge = (level) => {

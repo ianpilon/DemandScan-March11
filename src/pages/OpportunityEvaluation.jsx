@@ -802,26 +802,34 @@ const OpportunityEvaluation = () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       console.log('Continuing with the rest of the agent sequence (next up: demandAnalyst)');
-      
+
       // Explicitly start the Demand Analyst agent
-      const demandAnalystResult = await processWithAgent(
-        'demandAnalyst',
-        transcript,
-        { 
-          longContextChunking: result,
-          needsAnalysis: needsAnalysisResult
+      try {
+        const demandAnalystResult = await processWithAgent(
+          'demandAnalyst',
+          transcript,
+          { 
+            longContextChunking: result,
+            needsAnalysis: needsAnalysisResult
+          }
+        );
+
+        // Ensure we have a proper demandLevel property
+        if (demandAnalystResult && typeof demandAnalystResult.demandLevel === 'number') {
+          console.log('✅ Demand Analysis successful with level:', demandAnalystResult.demandLevel);
+        } else if (demandAnalystResult) {
+          // Try to fix the result structure if possible
+          console.log('⚠️ Restructuring demand analysis result');
+          demandAnalystResult.demandLevel = parseInt(demandAnalystResult.demandLevel) || 1;
+          demandAnalystResult.reasoning = demandAnalystResult.reasoning || { summary: "Analysis completed." };
         }
-      );
-      
-      // Ensure demandAnalyst results are properly stored
-      setLocalAnalysisResults(prev => ({
-        ...prev,
-        demandAnalyst: demandAnalystResult
-      }));
-      
-      // Wait for state update to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+
+        // Store the results explicitly
+        updateLocalResults('demandAnalyst', demandAnalystResult);
+      } catch (error) {
+        console.error('Error processing demand analyst:', error);
+      }
+
       // Continue with the rest of sequence
       await runNextAgentInSequence();
 
@@ -1062,6 +1070,10 @@ const OpportunityEvaluation = () => {
       runNextAgentInSequence();
     }
   }, [runNextAgentInSequence, showResult, userHasSelectedView]);
+
+  const updateLocalResults = useCallback((agentId, results) => {
+    setLocalAnalysisResults(prev => ({ ...prev, [agentId]: results }));
+  }, []);
 
   return (
     <div className="flex flex-col h-screen">

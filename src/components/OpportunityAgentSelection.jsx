@@ -35,12 +35,12 @@ const OpportunityAgentSelection = ({
         const hasResults = isDone(agent.id);
         const progress = agentProgress[agent.id] || 0;
         const currentAgent = getCurrentAgent();
-        
+
         // Debug output to track state for each agent card
         if (agent.id === 'demandAnalyst') {
           console.log(`📊 Demand Analyst card state - hasResults: ${hasResults}, isAnalyzing: ${isAnalyzing}, in localResults: ${!!localAnalysisResults?.demandAnalyst}`);
         }
-        
+
         // Show transcript optimization progress on the first visible agent card (Needs Analysis)
         // This creates the grey progress bar on the first card while chunking runs in background
         const showOptimizationOnThisCard = index === 0 && isOptimizingTranscript;
