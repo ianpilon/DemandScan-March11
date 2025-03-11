@@ -1,0 +1,23 @@
+Interviewer: Can you tell me about the last time you had to manage a complex project at work?
+
+Participant: Yes, about three months ago, I was leading a major software implementation for our client services team. The biggest challenge was that we were using multiple systems that didn't talk to each other well. It was causing a lot of manual work and errors.
+
+Interviewer: What made you decide to tackle this problem?
+
+Participant: Well, our team was spending about 4-5 hours each day just copying data between systems. It was not only time-consuming but also really frustrating. We had several incidents where important client information was missed or entered incorrectly. One time, we missed a critical deadline because the information wasn't properly transferred between systems.
+
+Interviewer: How did that impact your work?
+
+Participant: It was really stressful. We were constantly worried about making mistakes, and the manual process meant we couldn't take on as many clients as we wanted to. Our team's morale was pretty low because nobody enjoys doing repetitive data entry all day. We actually lost two team members partly because of this issue.
+
+Interviewer: What solutions did you try before?
+
+Participant: We tried using spreadsheets to track everything, then we tried some basic automation tools, but nothing really solved the core problem. The systems still needed manual intervention. We even hired a temp worker just to handle data entry, but that was expensive and didn't fix the underlying issue.
+
+Interviewer: How did you eventually solve it?
+
+Participant: We ended up implementing a custom integration solution. It wasn't cheap, but when we calculated the time saved and potential business growth, it made sense. The new system automatically syncs data between platforms every 15 minutes, and it has built-in error checking.
+
+Interviewer: What's different now after implementing the solution?
+
+Participant: The biggest change is that we got those 4-5 hours back each day. The team is much happier, and we've been able to take on 30% more clients without adding staff. The error rate has dropped to almost zero, and we haven't had any missed deadlines since. It's also easier to train new team members now because they don't have to learn multiple systems.
