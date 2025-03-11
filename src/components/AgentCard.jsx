@@ -71,10 +71,13 @@ const AgentCard = ({
       );
     }
     
-    // Second priority: Show green analysis progress
-    // Only show if not optimizing transcript
+    // Second priority: Show green analysis progress bar
+    // ALWAYS show when agent is analyzing, even if progress isn't available
+    // Use a default progress value of 50% if no specific progress is provided
     if (isAnalyzing && !isOptimizingTranscript) {
-      console.log('Showing green progress bar:', progress);
+      // Ensure we have a valid progress value (default to 50% if not provided or invalid)
+      const validProgress = (progress > 0 && progress <= 100) ? progress : 50;
+      console.log(`Showing green progress bar for ${agent.name}: ${validProgress}%`);
       return (
         <Badge 
           variant="outline" 
@@ -85,7 +88,7 @@ const AgentCard = ({
           <div className="flex-grow h-2 bg-green-100 rounded-full overflow-hidden">
             <div 
               className="h-full bg-green-500" 
-              style={{ width: `${progress}%` }}
+              style={{ width: `${validProgress}%` }}
             />
           </div>
         </Badge>

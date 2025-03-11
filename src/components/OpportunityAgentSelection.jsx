@@ -32,13 +32,21 @@ const OpportunityAgentSelection = ({
     <div className="space-y-4">
       {agentsList.map((agent, index) => {
         const isAnalyzing = analyzingAgents.has(agent.id);
-        const hasResults = isDone(agent.id);
+        // Check both isDone function and directly in localAnalysisResults to ensure consistency
+        // Use let instead of const so we can modify it if needed
+        let hasResults = isDone(agent.id) || !!localAnalysisResults[agent.id];
         const progress = agentProgress[agent.id] || 0;
         const currentAgent = getCurrentAgent();
 
         // Debug output to track state for each agent card
-        if (agent.id === 'demandAnalyst') {
-          console.log(`📊 Demand Analyst card state - hasResults: ${hasResults}, isAnalyzing: ${isAnalyzing}, in localResults: ${!!localAnalysisResults?.demandAnalyst}`);
+        if (agent && agent.id && agent.name) {
+          console.log(`📊 ${agent.name} card state - hasResults: ${hasResults}, isAnalyzing: ${isAnalyzing}, in localResults: ${!!localAnalysisResults?.[agent.id]}`);
+          
+          // CRITICAL: Force hasResults to be true if the agent exists in localAnalysisResults
+          // This is a failsafe to ensure View Results button is always shown
+          if (localAnalysisResults && agent.id in localAnalysisResults) {
+            hasResults = true;
+          }
         }
 
         // Show transcript optimization progress on the first visible agent card (Needs Analysis)
