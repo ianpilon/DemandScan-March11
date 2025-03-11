@@ -115,7 +115,7 @@ ${analysisContent}`
 
     // Parse and validate the response
     const needsAnalysis = JSON.parse(response.choices[0].message.content);
-    
+
     // Validate required fields
     if (!needsAnalysis.immediateNeeds || !needsAnalysis.latentNeeds) {
       console.error('Invalid needs analysis structure:', needsAnalysis);
@@ -150,7 +150,7 @@ const analyzeDemand = async (analysisResults, progressCallback, apiKey) => {
     await new Promise(resolve => setTimeout(resolve, 300));
     progressCallback(75);  // Never go to 100% until complete
     await new Promise(resolve => setTimeout(resolve, 300));
-    
+
     // Return dummy data for now
     return {
       demandLevel: 'Level 2 - Solution Demand',
@@ -181,7 +181,7 @@ const qualifyOpportunity = async (analysisResults, progressCallback, apiKey) => 
     await new Promise(resolve => setTimeout(resolve, 250));
     progressCallback(70);  // Never go to 100% until complete
     await new Promise(resolve => setTimeout(resolve, 250));
-    
+
     // Return dummy data for now
     return {
       qualified: true,
@@ -208,6 +208,14 @@ const AGENT_SEQUENCE = [
   'finalReport'          // Final report
 ];
 
+// Define agent dependencies
+const AGENT_DEPENDENCIES = {
+  'needsAnalysis': 'longContextChunking',
+  'demandAnalyst': 'needsAnalysis',
+  'opportunityQualification': 'demandAnalyst',
+  'finalReport': ['needsAnalysis', 'demandAnalyst', 'opportunityQualification']
+};
+
 const OpportunityEvaluation = () => {
   const [transcript, setTranscript] = useLocalStorage('opportunityTranscript', '');
   // Convert Set to Array for localStorage and back when using
@@ -228,11 +236,11 @@ const OpportunityEvaluation = () => {
   // Track the transcript optimization status separately
   const [isOptimizingTranscript, setIsOptimizingTranscript] = useLocalStorage('opportunityIsOptimizing', false);
   const [optimizationProgress, setOptimizationProgress] = useLocalStorage('opportunityOptimizationProgress', 0);
-  
+
   // Track the current agent in the analysis sequence
   const [currentAnalysisIndex, setCurrentAnalysisIndex] = useState(0);
   const [isSequenceRunning, setIsSequenceRunning] = useLocalStorage('opportunityIsSequenceRunning', false);
-  
+
   // Use refs to break circular dependencies
   const stateRef = useRef({
     analyzingAgents: new Set(),
@@ -263,7 +271,7 @@ const OpportunityEvaluation = () => {
   useEffect(() => {
     const currentArray = Array.from(analyzingAgents);
     const storedArray = JSON.parse(localStorage.getItem('opportunityAnalyzingAgents') || '[]');
-    
+
     // Only update if the arrays are different by comparing their string representations
     if (JSON.stringify(currentArray) !== JSON.stringify(storedArray)) {
       setAnalyzingAgentsArray(currentArray);
@@ -279,13 +287,13 @@ const OpportunityEvaluation = () => {
   const isDone = useCallback((agentId) => {
     // First check immediate state
     const hasResults = !!localAnalysisResults[agentId];
-    
+
     // Debug state for logging
     const debugState = {
       hasResults,
       inComponentState: !!localAnalysisResults[agentId]
     };
-    
+
     console.log(`🔍 isDone Check for ${agentId}:`, debugState);
     return hasResults;
   }, [localAnalysisResults]);
@@ -341,11 +349,11 @@ const OpportunityEvaluation = () => {
       setIsOptimizingTranscript(false);
       setOptimizationProgress(0);
       previousTranscriptRef.current = '';
-      
+
       // Clear local storage for analysis results
       window.localStorage.removeItem('opportunityResults');
       window.localStorage.removeItem('opportunityAgentProgress');
-      
+
       toast.success('Analysis reset successfully');
     }
   }, [setLocalAnalysisResults, setAgentProgress]);
@@ -366,7 +374,7 @@ const OpportunityEvaluation = () => {
       };
     });
   }, [setAgentProgress]);
-  
+
   // Helper function to clean up agent state after completion or error
   const cleanupAgentState = useCallback((agentId) => {
     console.log(`Cleaning up state for agent: ${agentId}`);
@@ -379,24 +387,24 @@ const OpportunityEvaluation = () => {
         console.log(`Removed ${agentId} from analyzing agents`);
         return newSet;
       });
-      
+
       // Clear current running agent if this is it
       if (agentId === currentRunningAgent) {
         console.log(`Clearing currentRunningAgent: ${currentRunningAgent}`);
         setCurrentRunningAgent(null);
       }
-      
+
       // Set hasAnalyzed if we have completed at least one agent
       if (Object.keys(localAnalysisResults).length > 0) {
         console.log(`Setting hasAnalyzed=true since we have completed agents`);
         setHasAnalyzed(true);
-        
+
         // If we've just finished the last agent and no view is selected, auto-select a result
         setTimeout(() => {
           // Important: use another setTimeout to ensure the analyzing agents state has been updated
           const currentAnalyzingAgentsSize = document.querySelector('[data-analyzing-agents]')?.getAttribute('data-analyzing-agents-size') || '0';
           console.log(`Current analyzing agents size: ${currentAnalyzingAgentsSize}`);
-          
+
           // If no agents are running, update the view results
           if (currentAnalyzingAgentsSize === '0' && !userHasSelectedView) {
             // Find the last completed agent (prefer opportunityQualification if available)
@@ -404,7 +412,7 @@ const OpportunityEvaluation = () => {
               localAnalysisResults.opportunityQualification ? 'opportunityQualification' :
               localAnalysisResults.demandAnalyst ? 'demandAnalyst' :
               localAnalysisResults.needsAnalysis ? 'needsAnalysis' : null;
-              
+
             if (lastAgent) {
               console.log(`Auto-selecting result view for completed agent: ${lastAgent}`);
               setShowResult(lastAgent);
@@ -427,17 +435,17 @@ const OpportunityEvaluation = () => {
   // Function to process a transcript with a specific agent
   const processWithAgent = useCallback(async (agentId, content, previousResults = {}) => {
     console.log(`Starting processWithAgent for ${agentId}`);
-    
+
     if (!apiKey && agentId !== 'longContextChunking') {
       toast.error('API key is missing. Please add it in Settings.');
       // Clean up state on early exit
       cleanupAgentState(agentId);
       return null;
     }
-    
+
     // Make a safe copy of previousResults to avoid reference issues
     const resultsCopy = {...previousResults};
-    
+
     // Initialize progress state
     setAnalyzingAgents(prev => {
       console.log(`Adding ${agentId} to analyzing agents set`);
@@ -445,7 +453,7 @@ const OpportunityEvaluation = () => {
     });
     setCurrentRunningAgent(agentId);
     updateAgentProgress(agentId, 0, 'loading');
-    
+
     // Initialize OpenAI only when needed
     let openai = null;
     if (agentId !== 'longContextChunking') {
@@ -476,7 +484,7 @@ const OpportunityEvaluation = () => {
         console.error('qualifyOpportunity function is not available:', qualifyOpportunity);
         throw new Error('qualifyOpportunity function is not properly imported');
       }
-      
+
       let result;
 
       // Determine which agent function to call based on agentId
@@ -487,20 +495,20 @@ const OpportunityEvaluation = () => {
           result = await processWithLongContextChunking(content, progress => updateAgentProgress(agentId, progress), apiKey);
           setLongContextResults(result);
           break;
-          
+
         case 'needsAnalysis':
           console.log('Processing with needsAnalysis agent');
           // Process the Needs Analysis agent (first visible agent)
           result = await analyzeNeeds({ ...longContextResults, ...previousResults }, progress => updateAgentProgress(agentId, progress), apiKey);
           break;
-          
+
         case 'demandAnalyst':
           console.log('Processing with demandAnalyst agent');
           // Process the Demand Analyst agent (second visible agent)
           result = await analyzeDemand({ ...longContextResults, ...previousResults }, progress => updateAgentProgress(agentId, progress), apiKey);
           console.log('📊 demandAnalyst returned result:', result ? 'Result exists' : 'No result');
           break;
-          
+
         case 'opportunityQualification':
           console.log('Processing with opportunityQualification agent');
           // Process the Opportunity Qualification agent (third visible agent)
@@ -521,7 +529,7 @@ const OpportunityEvaluation = () => {
           // Update parameters to match function signature: (analysisResults, progressCallback, apiKey)
           result = await analyzePainPoints({ ...longContextResults, ...previousResults }, progress => updateAgentProgress(agentId, progress), apiKey);
           break;
-          
+
         case 'problemAwareness':
           // Update parameters to match function signature: (analysisResults, progressCallback, apiKey)
           result = await analyzeProblemAwareness({ ...longContextResults, ...previousResults }, progress => updateAgentProgress(agentId, progress), apiKey);
@@ -547,7 +555,7 @@ const OpportunityEvaluation = () => {
             resultType: typeof result,
             isEmpty: result && Object.keys(result).length === 0
           });
-          
+
           // Critical: As soon as we have results for any agent, immediately set hasAnalyzed
           if (result) {
             console.log(`💯 ${agentId} completed - immediately setting hasAnalyzed=true`);
@@ -561,7 +569,7 @@ const OpportunityEvaluation = () => {
             }, 50); // Small delay to ensure state updates properly
           }
         }
-        
+
         const newResults = { ...prev, [agentId]: result };
         return newResults;
       });
@@ -570,12 +578,12 @@ const OpportunityEvaluation = () => {
       // Final progress update - now we can safely set it to 100%
       updateAgentProgress(agentId, 100, 'success');
       console.log(`Agent ${agentId} completed successfully with progress 100%`);
-      
+
       // Use the cleanupAgentState helper with a delay to ensure progress bar completes visually
       setTimeout(() => {
         cleanupAgentState(agentId);
       }, 500);
-      
+
       // Return the result for potential chaining
       return result;
     } catch (error) {
@@ -584,7 +592,7 @@ const OpportunityEvaluation = () => {
 
       // Update the progress with error status
       updateAgentProgress(agentId, 0, 'error', error.message);
-      
+
       // Use the cleanupAgentState helper with a delay for error handling too
       setTimeout(() => {
         console.log(`Calling cleanupAgentState for ${agentId} after error`);
@@ -601,61 +609,61 @@ const OpportunityEvaluation = () => {
       console.log('Sequence is not running, stopping');
       return;
     }
-    
+
     // CRITICAL: Ensure we're never showing the longContextChunking results
     if (showResult === 'longContextChunking') {
       console.log('🚨 CRITICAL: Detected longContextChunking being shown - resetting showResult');
       setShowResult(null);
     }
-    
+
     // Find which agents have been completed
     const completedAgents = new Set(Object.keys(localAnalysisResults));
     console.log('Completed agents:', [...completedAgents]);
-    
+
     // Define the visible agent sequence (without the hidden longContextChunking)
     const visibleAgentSequence = ['needsAnalysis', 'demandAnalyst', 'opportunityQualification', 'finalReport'];
-    
+
     // Special case: If we just completed longContextChunking, immediately proceed to needsAnalysis
     if (completedAgents.has('longContextChunking') && currentRunningAgent === 'longContextChunking') {
       console.log('🔄 Transitioning from chunking phase to analysis phase');
       setShowResult(null); // Ensure no results are showing during transition
     }
-    
+
     // Find the next visible agent to run
     let nextAgentIndex = visibleAgentSequence.findIndex(agentId => !completedAgents.has(agentId));
-    
+
     // If needsAnalysis is already done (processed directly in startAnalysisSequence)
     // skip to the agent after it
     if (nextAgentIndex === 0 && completedAgents.has('needsAnalysis')) {
       nextAgentIndex = 1;  // Move to the second visible agent
     }
-    
+
     // Check if we've completed all agents
     if (nextAgentIndex === -1) {
       console.log('All agents completed, sequence is done');
       setIsSequenceRunning(false);
       return;
     }
-    
+
     // Get the next agent to run
     const nextAgentId = visibleAgentSequence[nextAgentIndex];
     console.log(`Running next agent in sequence: ${nextAgentId}`);
-    
+
     // Get agent information
     const agentInfo = agents.find(a => a.id === nextAgentId);
-    
+
     // Check if prerequisites are satisfied
     if (agentInfo?.requiresPreviousAgent) {
       const prerequisiteIds = Array.isArray(agentInfo.requiresPreviousAgent) 
         ? agentInfo.requiresPreviousAgent 
         : [agentInfo.requiresPreviousAgent];
-      
+
       const allPrerequisitesMet = prerequisiteIds.every(id => localAnalysisResults[id]);
-      
+
       if (!allPrerequisitesMet) {
         // Cannot run this agent yet, try to find prerequisites that need to be run
         const missingPrerequisites = prerequisiteIds.filter(id => !localAnalysisResults[id]);
-        
+
         // Check if any of these missing prerequisites have their own prerequisites
         for (const missingId of missingPrerequisites) {
           // Recursively try to run prerequisites first
@@ -673,17 +681,17 @@ const OpportunityEvaluation = () => {
             return;
           }
         }
-        
+
         // If we can't find a runnable prerequisite, there might be a dependency issue
         toast.error(`Cannot run ${agentInfo.name}. Missing required prerequisite analyses.`);
         setIsSequenceRunning(false);
         return;
       }
     }
-    
+
     // Run the next agent
     await processWithAgent(nextAgentId, transcript, localAnalysisResults);
-    
+
     // Only continue if we're still in sequence mode
     if (isSequenceRunning) {
       runNextAgentInSequence();
@@ -691,7 +699,7 @@ const OpportunityEvaluation = () => {
       // Critical: If the sequence is ending here, make sure we set the analyzed state
       console.log('Sequence ending - ensuring hasAnalyzed=true and a result is selected');
       setHasAnalyzed(true);
-      
+
       // Auto-select a result if none is selected yet
       if (showResult === null && !userHasSelectedView) {
         // Prefer the opportunity qualification if available
@@ -712,25 +720,25 @@ const OpportunityEvaluation = () => {
       toast.error('Please upload or enter a transcript before running analysis.');
       return;
     }
-    
+
     // Reset everything first to ensure clean state
     setShowResult(null);
     setAnalyzingAgents(new Set());
     setLocalAnalysisResults({});
     setAgentProgress({});
-    
+
     // Start the sequence
     setIsSequenceRunning(true);
-    
+
     try {
       // FIRST STEP: Background Chunking with Grey Progress Bar
       console.log('Starting chunking process with grey progress bar');
-      
+
       // Set the optimization status for the background chunking process
       // This will show a GREY progress bar on the first agent card
       setIsOptimizingTranscript(true);
       setOptimizationProgress(0);
-      
+
       // Run the chunking agent in the background
       const result = await processWithLongContextChunking(
         transcript, 
@@ -740,43 +748,43 @@ const OpportunityEvaluation = () => {
         }, 
         apiKey
       );
-      
+
       // Store the chunking results but keep them hidden
       setLongContextResults(result);
-      
+
       // Add to analysis results but ENSURE these are never displayed to the user
       setLocalAnalysisResults({
         longContextChunking: result
       });
-      
+
       // Important: NEVER set showResult to longContextChunking
       if (showResult === 'longContextChunking') {
         console.log('Preventing longContextChunking results from being displayed');
         setShowResult(null);
       }
-      
+
       // Update optimization progress to 100% first
       setOptimizationProgress(100);
-      
+
       // Update optimization progress to 100% first
       console.log('Setting optimization progress to 100% before transition');
       setOptimizationProgress(100);
-      
+
       // Force a small delay to allow UI to update before switching progress bars
       console.log('Optimization complete, waiting before transition to analysis');
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       // Important: explicitly clear optimization state BEFORE starting analysis
       console.log('Explicitly clearing optimization state');
       setIsOptimizingTranscript(false);
       setOptimizationProgress(0);
-      
+
       // Small delay to ensure state updates are processed
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       // SECOND STEP: Start the first visible agent (Needs Analysis)
       console.log('Starting needs analysis with green progress bar');
-      
+
       // Run the first visible agent (needsAnalysis)
       // This will show a GREEN progress bar
       const needsAnalysisResult = await processWithAgent(
@@ -784,26 +792,26 @@ const OpportunityEvaluation = () => {
         transcript, 
         { longContextChunking: result }
       );
-      
+
       // THIRD STEP: Continue with rest of the sequence
       console.log('Explicitly ensuring sequence continues running');
       // Force sequence running to true to ensure continuation
       setIsSequenceRunning(true);
-      
+
       // Small delay to make sure state updates
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       console.log('Continuing with the rest of the agent sequence (next up: demandAnalyst)');
       await runNextAgentInSequence();
-      
+
       // Explicitly ensure hasAnalyzed is set and results are shown
       console.log('Analysis sequence completed, explicitly setting final states');
       setHasAnalyzed(true);
-      
+
       // Double check that a result is selected for viewing
       if ((showResult === null || showResult === 'longContextChunking') && !userHasSelectedView) {
         console.log('Selecting appropriate result to display');
-        
+
         // NEVER show longContextChunking results, look for the most important result to show
         if (localAnalysisResults.opportunityQualification) {
           console.log('Setting showResult to opportunityQualification');
@@ -822,7 +830,7 @@ const OpportunityEvaluation = () => {
           }
         }
       }
-      
+
       // Log debug information about the final state
       console.log('Final analysis state:', {
         hasAnalyzed: true,
@@ -833,7 +841,7 @@ const OpportunityEvaluation = () => {
     } catch (error) {
       console.error('Error during analysis sequence:', error);
       toast.error(`Error: ${error.message}`);
-      
+
       // Reset all states on error
       setIsSequenceRunning(false);
       setIsOptimizingTranscript(false);
@@ -879,7 +887,7 @@ const OpportunityEvaluation = () => {
     localStorage.removeItem('opportunityOptimizationProgress');
     localStorage.removeItem('opportunityCurrentIndex');
     localStorage.removeItem('opportunityIsSequenceRunning');
-    
+
     // Clear all state
     setLocalAnalysisResults({});
     setAgentProgress({});
@@ -911,9 +919,9 @@ const OpportunityEvaluation = () => {
       const prerequisiteIds = Array.isArray(agentInfo.requiresPreviousAgent) 
         ? agentInfo.requiresPreviousAgent 
         : [agentInfo.requiresPreviousAgent];
-      
+
       const missingPrerequisites = prerequisiteIds.filter(id => !localAnalysisResults[id]);
-      
+
       if (missingPrerequisites.length > 0) {
         const missingNames = missingPrerequisites.map(id => {
           const prereqAgent = agents.find(a => a.id === id);
@@ -935,15 +943,15 @@ const OpportunityEvaluation = () => {
   useEffect(() => {
     // Don't run again if we've already completed this sequence
     if (sequenceCompletedRef.current) return;
-    
+
     // Skip if no results yet
     if (!Object.keys(localAnalysisResults).length) {
       return;
     }
-    
+
     console.log('💯 Checking if we should set hasAnalyzed=true');
     console.log('Has needsAnalysis results:', !!localAnalysisResults.needsAnalysis);
-    
+
     // Immediately mark hasAnalyzed=true if we have ANY agent results
     if (localAnalysisResults.needsAnalysis || 
         localAnalysisResults.demandAnalyst || 
@@ -951,13 +959,13 @@ const OpportunityEvaluation = () => {
       console.log('✅ We have some results! Setting hasAnalyzed=true');
       setHasAnalyzed(true);
     }
-    
+
     // Only set sequence as completed if ALL agents are done or sequence isn't running
     if (!isSequenceRunning && analyzingAgents.size === 0) {
       console.log('✅ Full sequence completed! Marking as done');
       sequenceCompletedRef.current = true;
     }
-    
+
     // Only set the show result if user hasn't made a choice
     if (showResult === null && !userHasSelectedView) {
       // Default to showing the last visible agent result
@@ -979,11 +987,11 @@ const OpportunityEvaluation = () => {
     if (showResult !== 'longContextChunking' || contextChunkingFixedRef.current) {
       return;
     }
-    
+
     // Fix the longContextChunking view once
     console.log('🛡️ Preventing longContextChunking view');
     contextChunkingFixedRef.current = true;
-    
+
     // Show the first available result instead
     const agents = ['needsAnalysis', 'demandAnalyst', 'opportunityQualification'];
     for (const agentId of agents) {
@@ -992,7 +1000,7 @@ const OpportunityEvaluation = () => {
         return;
       }
     }
-    
+
     // If no results found, show nothing
     setShowResult(null);
   }, [showResult, localAnalysisResults]);
@@ -1007,6 +1015,32 @@ const OpportunityEvaluation = () => {
       shouldShowResults: showResult && hasAnalyzed
     });
   }, [showResult, hasAnalyzed, isSequenceRunning, analyzingAgents]);
+
+  // Handle analysis completion
+  const handleAnalysisComplete = useCallback((agentId, results) => {
+    setAnalyzingAgents(prev => prev.filter(id => id !== agentId));
+    setLocalAnalysisResults(prev => ({ ...prev, [agentId]: results }));
+    setAgentProgress(prev => ({ ...prev, [agentId]: 100 }));
+    setHasAnalyzed(true);
+
+    // Select the result to show if user hasn't already selected one
+    if (!userHasSelectedView) {
+      if (agentId === 'opportunityQualification') {
+        setShowResult('opportunityQualification');
+      } else if (agentId === 'demandAnalyst' && showResult !== 'opportunityQualification') {
+        setShowResult('demandAnalyst');
+      } else if (agentId === 'needsAnalysis' && showResult !== 'opportunityQualification' && showResult !== 'demandAnalyst') {
+        setShowResult('needsAnalysis');
+      }
+    }
+
+    // Find agent's position in sequence and run next agent
+    const currentIndex = AGENT_SEQUENCE.indexOf(agentId);
+    if (currentIndex !== -1 && currentIndex < AGENT_SEQUENCE.length - 1) {
+      console.log(`✅ Agent ${agentId} completed, running next in sequence`);
+      runNextAgentInSequence();
+    }
+  }, [runNextAgentInSequence, showResult, userHasSelectedView]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -1026,7 +1060,7 @@ const OpportunityEvaluation = () => {
             </Button>
         </div>
       </div>
-      
+
       {/* Main Content */}
       <div className="flex flex-grow overflow-hidden">
         <div className="w-1/3 p-4 overflow-y-auto" ref={containerRef}>
@@ -1045,6 +1079,7 @@ const OpportunityEvaluation = () => {
             onViewResults={handleViewResult}
             isOptimizingTranscript={isOptimizingTranscript}
             optimizationProgress={optimizationProgress}
+            onAnalysisComplete={handleAnalysisComplete}
           />
         </div>
         <div className="w-2/3 p-4 overflow-y-auto" ref={agentListRef}>
@@ -1056,7 +1091,7 @@ const OpportunityEvaluation = () => {
               data-analyzing-agents-size={analyzingAgents.size}
               data-sequence-running={isSequenceRunning.toString()}
             />
-            
+
             {/* Show results if ANY agent has completed (showResult exists OR hasAnalyzed) */}
             {((showResult && showResult !== 'longContextChunking') || (hasAnalyzed && localAnalysisResults.needsAnalysis)) ? (
               <AnalysisResults 
