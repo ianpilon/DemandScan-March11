@@ -802,6 +802,18 @@ const OpportunityEvaluation = () => {
       await new Promise(resolve => setTimeout(resolve, 50));
 
       console.log('Continuing with the rest of the agent sequence (next up: demandAnalyst)');
+      
+      // Explicitly start the Demand Analyst agent
+      const demandAnalystResult = await processWithAgent(
+        'demandAnalyst',
+        transcript,
+        { 
+          longContextChunking: result,
+          needsAnalysis: needsAnalysisResult
+        }
+      );
+      
+      // Continue with the rest of sequence
       await runNextAgentInSequence();
 
       // Explicitly ensure hasAnalyzed is set and results are shown
