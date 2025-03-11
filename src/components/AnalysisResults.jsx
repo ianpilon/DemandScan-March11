@@ -845,8 +845,9 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
         <Card>
           <CardHeader>
             <CardTitle>Needs Analysis</CardTitle>
-            <CardDescription>Error: Invalid result structure</CardDescription><CardHeader>
-            <CardContent>
+            <CardDescription>Error: Invalid result structure</CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="text-red-500">
               Unable to display needs analysis results. The data structure is invalid.
             </div>
