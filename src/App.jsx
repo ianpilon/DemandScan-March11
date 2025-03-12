@@ -4,11 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import VerticalNavigation from "./components/VerticalNavigation";
 import { useState } from "react";
-import AIAgentAnalysis from "./pages/AIAgentAnalysis";
+import CustomerProblemAnalyst from "./pages/CustomerProblemAnalyst";
 import ProblemHypothesis from "./pages/ProblemHypothesis";
-import GradeTranscripts from "./pages/GradeTranscripts";
 import Settings from "./pages/Settings";
-import OpportunityEvaluation from "./pages/OpportunityEvaluation";
 
 const queryClient = new QueryClient();
 
@@ -28,14 +26,12 @@ const App = () => {
                 <Route 
                   path="/ai-agent-analysis" 
                   element={
-                    <AIAgentAnalysis 
+                    <CustomerProblemAnalyst 
                       setAnalysisResults={setAnalysisResults}
                     />
                   } 
                 />
-                <Route path="/opportunity-evaluation" element={<OpportunityEvaluation />} />
                 <Route path="/problem-hypothesis" element={<ProblemHypothesis />} />
-                <Route path="/grade-transcripts" element={<GradeTranscripts />} />
                 <Route path="/settings" element={<Settings />} />
               </Routes>
             </div>

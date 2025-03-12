@@ -27,7 +27,6 @@ import OpenAI from 'openai';
 
 // Define the analysis sequence
 const AGENT_SEQUENCE = [
-  'longContextChunking',
   'jtbd',
   'jtbdGains',
   'painExtractor',
@@ -35,7 +34,7 @@ const AGENT_SEQUENCE = [
   'finalReport'
 ];
 
-const AIAgentAnalysis = () => {
+const CustomerProblemAnalyst = () => {
   const [transcript, setTranscript] = useLocalStorage('aiAnalysisTranscript', '');
   // Convert Set to Array for localStorage and back when using
   const [analyzingAgentsArray, setAnalyzingAgentsArray] = useLocalStorage('aiAnalysisAgents', []);
@@ -244,14 +243,17 @@ const AIAgentAnalysis = () => {
       const agentName = agents.find(a => a.id === agentId)?.name;
       console.log(`${agentName} has finished processing${isSequenceRunning ? ', continuing sequence...' : ''}`);
 
-      // If we're in a sequence, trigger the next agent immediately
-      if (stateRef.current.isSequenceRunning && currentIndex >= 0) {
+      // Always trigger the next agent in the sequence, regardless of isSequenceRunning state
+      // This ensures the full sequence runs automatically
+      const currentIndex = AGENT_SEQUENCE.indexOf(agentId);
+      if (currentIndex >= 0) {
         const nextIndex = currentIndex + 1;
         if (nextIndex < AGENT_SEQUENCE.length) {
           console.log(`🚀 Triggering next agent in sequence:`, {
             current: agentId,
             next: AGENT_SEQUENCE[nextIndex],
-            index: nextIndex
+            index: nextIndex,
+            isSequenceRunning: stateRef.current.isSequenceRunning
           });
           const nextAgentId = AGENT_SEQUENCE[nextIndex];
           // Run next agent immediately
@@ -261,6 +263,8 @@ const AIAgentAnalysis = () => {
             handleRunAgentRef.current(nextAgentId);
           }
         }
+      } else {
+        console.log(`⚠️ Agent ${agentId} not found in sequence, cannot advance`);
       }
       
     } catch (error) {
@@ -436,14 +440,7 @@ const AIAgentAnalysis = () => {
       const updateProgress = (progress) => {
         console.log(`Progress update for ${agentId}:`, progress);
         
-        // For longContextChunking agent, update both regular progress and optimization indicators
-        if (agentId === 'longContextChunking') {
-          // Update the optimization status for the JTBD card
-          setIsOptimizingTranscript(true);
-          setOptimizationProgress(progress);
-        }
-        
-        // Always update the regular agent progress
+        // Update the regular agent progress
         setAgentProgress(prev => ({
           ...prev,
           [agentId]: progress
@@ -452,84 +449,92 @@ const AIAgentAnalysis = () => {
 
       switch (agentId) {
         case 'longContextChunking':
-          console.log('Starting Long Context Chunking analysis...');
-          results = await processWithLongContextChunking(
+          console.log('Long Context Chunking is bypassed in this version');
+          // Simulate progress updates to show the green progress bar
+          updateProgress(10);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          updateProgress(30);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          updateProgress(60);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          updateProgress(90);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Return a minimal result structure to satisfy any dependencies
+          results = {
+            finalSummary: transcript
+          };
+          
+          // Complete with 100% progress
+          updateProgress(100);
+          break;
+
+        case 'jtbd':
+          // Use the transcript directly for JTBD analysis
+          console.log('Starting JTBD Primary Goal analysis directly with transcript...');
+          
+          if (!transcript) {
+            console.error('Missing transcript for JTBD analysis');
+            throw new Error('Transcript is required for JTBD analysis');
+          }
+          
+          console.log('✅ Using raw transcript for JTBD analysis:', { 
+            transcriptLength: transcript.length
+          });
+          
+          // Initial progress update to show the green progress bar
+          updateProgress(5);
+          
+          // Make sure analyzingAgents includes this agent
+          setAnalyzingAgents(prev => new Set(prev).add(agentId));
+          
+          results = await analyzeJTBDPrimaryGoal(
             transcript,
             updateProgress,
             storedApiKey
           );
           break;
 
-        case 'jtbd':
-          // Get the most up-to-date results from all possible sources
-          const storedResults = JSON.parse(localStorage.getItem('analysisResults') || '{}');
-          const chunkerResults = 
-            stateRef.current.localAnalysisResults.longContextChunking || 
-            storedResults.longContextChunking || 
-            localAnalysisResults.longContextChunking;
-            
-          if (!chunkerResults) {
-            console.error('Missing chunkerResults for JTBD:', {
-              inStateRef: !!stateRef.current.localAnalysisResults.longContextChunking,
-              inLocalStorage: !!storedResults.longContextChunking,
-              inComponentState: !!localAnalysisResults.longContextChunking
-            });
-            throw new Error('Long Context Chunking results required');
-          }
-          
-          console.log('✅ Found chunkerResults for JTBD analysis:', { 
-            resultLength: JSON.stringify(chunkerResults).length
-          });
-          
-          results = await analyzeJTBDPrimaryGoal(
-            chunkerResults,
-            updateProgress,
-            storedApiKey
-          );
-          break;
-
         case 'jtbdGains':
-          // Get the most up-to-date results from all possible sources
+          // Get the most up-to-date JTBD results from all possible sources
           const gainsStoredResults = JSON.parse(localStorage.getItem('analysisResults') || '{}');
           
-          // Get chunker results from all sources
-          const gainsChunkerResults = 
-            stateRef.current.localAnalysisResults.longContextChunking || 
-            gainsStoredResults.longContextChunking || 
-            localAnalysisResults.longContextChunking;
-            
+          // Initial progress update to show the green progress bar
+          updateProgress(5);
+          
+          // Make sure analyzingAgents includes this agent
+          setAnalyzingAgents(prev => new Set(prev).add(agentId));
+          
           // Get JTBD results from all sources
           const jtbdResults = 
             stateRef.current.localAnalysisResults.jtbd || 
             gainsStoredResults.jtbd || 
             localAnalysisResults.jtbd;
           
-          // Verify we have both prerequisites
-          if (!gainsChunkerResults || !jtbdResults) {
-            console.error('Missing prerequisites for JTBD Gains:', {
-              hasChunking: {
-                inStateRef: !!stateRef.current.localAnalysisResults.longContextChunking,
-                inLocalStorage: !!gainsStoredResults.longContextChunking,
-                inComponentState: !!localAnalysisResults.longContextChunking
-              },
+          // Verify we have the prerequisite
+          if (!jtbdResults) {
+            console.error('Missing prerequisite for JTBD Gains:', {
               hasJTBD: {
                 inStateRef: !!stateRef.current.localAnalysisResults.jtbd,
                 inLocalStorage: !!gainsStoredResults.jtbd,
                 inComponentState: !!localAnalysisResults.jtbd
               }
             });
-            throw new Error('Both Long Context Chunking and JTBD Primary Goal results required');
+            throw new Error('JTBD Primary Goal results required for Gains Analysis');
           }
           
-          console.log('✅ Found all prerequisites for JTBD Gains analysis');
+          console.log('✅ Found prerequisite for JTBD Gains analysis');
           
-          // Restructure the data to match expected format
+          // Prepare input with transcript and JTBD results
           const gainsInput = {
-            ...gainsChunkerResults,
-            jtbdResults: jtbdResults // Pass as child property
+            transcript: transcript,
+            jtbdResults: jtbdResults
           };
 
-          console.log('Structured input for JTBD Gains analysis:', gainsInput);
+          console.log('Structured input for JTBD Gains analysis:', { 
+            transcriptLength: transcript.length,
+            hasJtbdResults: !!jtbdResults
+          });
           
           try {
             results = await analyzeJTBDGains(
@@ -549,43 +554,43 @@ const AIAgentAnalysis = () => {
           // Get the most up-to-date results from all possible sources
           const painStoredResults = JSON.parse(localStorage.getItem('analysisResults') || '{}');
           
-          // Get chunker results from all sources
-          const painChunkerResults = 
-            stateRef.current.localAnalysisResults.longContextChunking || 
-            painStoredResults.longContextChunking || 
-            localAnalysisResults.longContextChunking;
-            
-          // Get JTBD Gains results from all sources
+          // Get JTBD Gains results from all sources - this is the only prerequisite we need
           const gainsResults = 
             stateRef.current.localAnalysisResults.jtbdGains || 
             painStoredResults.jtbdGains || 
             localAnalysisResults.jtbdGains;
           
-          // Verify we have both prerequisites
-          if (!painChunkerResults || !gainsResults) {
-            console.error('Missing prerequisites for Pain Analysis:', {
-              hasChunking: {
-                inStateRef: !!stateRef.current.localAnalysisResults.longContextChunking,
-                inLocalStorage: !!painStoredResults.longContextChunking,
-                inComponentState: !!localAnalysisResults.longContextChunking
-              },
+          // Set initial progress update
+          setAgentProgress(prev => ({
+            ...prev,
+            [agentId]: 5
+          }));
+          
+          // Verify we have the prerequisite
+          if (!gainsResults) {
+            console.error('Missing prerequisite for Pain Analysis:', {
               hasGains: {
                 inStateRef: !!stateRef.current.localAnalysisResults.jtbdGains,
                 inLocalStorage: !!painStoredResults.jtbdGains,
                 inComponentState: !!localAnalysisResults.jtbdGains
               }
             });
-            throw new Error('Both Long Context Chunking and JTBD Gains Analysis results required');
+            throw new Error('JTBD Gains Analysis results required for Pain Analysis');
           }
           
           console.log('✅ Found all prerequisites for Pain Analysis');
           
           try {
+            // Create input with transcript and gains results
+            const painInput = {
+              transcript: transcript,
+              gainsAnalysis: gainsResults
+            };
+            
+            console.log('Starting Pain Analysis with transcript and gains results');
+            
             results = await analyzePainPoints(
-              {
-                ...painChunkerResults,
-                gainsAnalysis: gainsResults
-              },
+              painInput,
               updateProgress,
               storedApiKey
             );
@@ -598,59 +603,78 @@ const AIAgentAnalysis = () => {
           break;
 
         case 'problemAwareness':
-          // Get chunker results from all sources
-          const problemChunkerResults = 
-            stateRef.current.localAnalysisResults.longContextChunking || 
-            JSON.parse(localStorage.getItem('analysisResults') || '{}').longContextChunking || 
-            localAnalysisResults.longContextChunking;
-            
-          if (!problemChunkerResults) {
-            throw new Error('Long Context Chunking results required');
+          // Get pain results from all sources
+          const problemAwarenessStoredResults = JSON.parse(localStorage.getItem('analysisResults') || '{}');
+          
+          // Get Pain Analysis results from all sources
+          const painResults = 
+            stateRef.current.localAnalysisResults.painExtractor || 
+            problemAwarenessStoredResults.painExtractor || 
+            localAnalysisResults.painExtractor;
+          
+          // Set initial progress update
+          setAgentProgress(prev => ({
+            ...prev,
+            [agentId]: 5
+          }));
+          
+          // Verify we have the prerequisite
+          if (!painResults) {
+            console.error('Missing prerequisite for Problem Awareness Analysis:', {
+              hasPainResults: {
+                inStateRef: !!stateRef.current.localAnalysisResults.painExtractor,
+                inLocalStorage: !!problemAwarenessStoredResults.painExtractor,
+                inComponentState: !!localAnalysisResults.painExtractor
+              }
+            });
+            throw new Error('Pain Analysis results required for Problem Awareness Analysis');
           }
           
-          console.log('✅ Found chunker results for Problem Awareness analysis');
+          console.log('✅ Found pain results for Problem Awareness analysis');
+          
+          // Create input with transcript and pain results
+          const problemInput = {
+            transcript: transcript,
+            painAnalysis: painResults
+          };
+          
+          console.log('Starting Problem Awareness Analysis with transcript and pain results');
           
           results = await analyzeProblemAwareness(
-            problemChunkerResults,
+            problemInput,
             updateProgress,
             storedApiKey
           );
           break;
 
         case 'needsAnalysis':
-          // Get the most up-to-date results from all possible sources
-          const needsStoredResults = JSON.parse(localStorage.getItem('analysisResults') || '{}');
+          console.log('Starting Needs Analysis directly with transcript...');
           
-          // Get chunker results from all sources
-          const needsChunkerResults = 
-            stateRef.current.localAnalysisResults.longContextChunking || 
-            needsStoredResults.longContextChunking || 
-            localAnalysisResults.longContextChunking;
-            
-          // Verify we have prerequisites
-          if (!needsChunkerResults) {
-            console.error('Missing prerequisites for Needs Analysis:', {
-              hasChunking: {
-                inStateRef: !!stateRef.current.localAnalysisResults.longContextChunking,
-                inLocalStorage: !!needsStoredResults.longContextChunking,
-                inComponentState: !!localAnalysisResults.longContextChunking
-              }
-            });
-            throw new Error('Long Context Chunking results required');
+          // Verify we have a transcript
+          if (!transcript) {
+            console.error('Missing transcript for Needs Analysis');
+            throw new Error('Transcript is required for Needs Analysis');
           }
           
-          console.log('✅ Found all prerequisites for Needs Analysis');
+          console.log('✅ Using raw transcript for Needs Analysis:', { 
+            transcriptLength: transcript.length
+          });
           
-          // Create a consolidated results object to pass to the needs analyzer
-          const needsInputResults = {
-            ...localAnalysisResults,  // Base with all other results
-            longContextChunking: needsChunkerResults  // Override with latest chunking results
+          // Initial progress update to show the green progress bar
+          updateProgress(5);
+          
+          // Create input with transcript
+          const needsInputData = {
+            transcript: transcript
           };
           
           try {
+            // Make sure analyzingAgents includes this agent
+            setAnalyzingAgents(prev => new Set(prev).add(agentId));
+            
             // Run needs analysis with proper error handling
             results = await analyzeNeeds(
-              needsInputResults,
+              needsInputData,
               updateProgress,
               storedApiKey
             );
@@ -805,6 +829,9 @@ const AIAgentAnalysis = () => {
           const finalInputResults = {
             ...localAnalysisResults,  // Base results
             
+            // Include the transcript which is required for the final report
+            transcript: transcript,
+            
             // Override with the most up-to-date versions of each result
             longContextChunking: 
               stateRef.current.localAnalysisResults.longContextChunking || 
@@ -833,9 +860,15 @@ const AIAgentAnalysis = () => {
 
           };
           
-          // Verify at least the chunking results are available
-          if (!finalInputResults.longContextChunking) {
-            console.error('Missing prerequisites for Final Report');
+          // Verify that we have the transcript and at least some analysis results
+          if (!finalInputResults.transcript || 
+              (!finalInputResults.jtbdGains && !finalInputResults.painExtractor && !finalInputResults.problemAwareness)) {
+            console.error('Missing prerequisites for Final Report:', {
+              hasTranscript: !!finalInputResults.transcript,
+              hasGainsAnalysis: !!finalInputResults.jtbdGains,
+              hasPainAnalysis: !!finalInputResults.painExtractor,
+              hasProblemAwareness: !!finalInputResults.problemAwareness
+            });
             throw new Error('Previous analysis results required');
           }
           
@@ -1038,15 +1071,26 @@ const AIAgentAnalysis = () => {
     
     // Initialize sequence
     setCurrentAnalysisIndex(0);
+    // Set isSequenceRunning to true to ensure all agents run in sequence
     setIsSequenceRunning(true);
     
     // Reset the user's view selection flag since we're starting a fresh analysis
     setUserHasSelectedView(false);
     
+    // Set initial progress for the first agent to show the progress bar immediately
+    const firstAgent = AGENT_SEQUENCE[0];
+    setAgentProgress(prev => ({
+      ...prev,
+      [firstAgent]: 5
+    }));
+    
+    // Add the first agent to the analyzing agents set
+    setAnalyzingAgents(new Set([firstAgent]));
+    
     // Start with first agent
     try {
-      console.log('🚀 Starting first agent:', AGENT_SEQUENCE[0]);
-      await handleRunAgent(AGENT_SEQUENCE[0]);
+      console.log('🚀 Starting first agent:', firstAgent);
+      await handleRunAgent(firstAgent);
     } catch (error) {
       console.error('Failed to start analysis sequence:', error);
       setIsSequenceRunning(false);
@@ -1074,7 +1118,7 @@ const AIAgentAnalysis = () => {
       {/* Header */}
       <div className="w-full bg-[#FAFAFA] p-4 border-b">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">AI Agent Analysis</h1>
+          <h1 className="text-2xl font-bold">Customer Problem Analyst</h1>
           <Button 
               onClick={handleClearData} 
               variant="outline" 
@@ -1142,4 +1186,4 @@ const AIAgentAnalysis = () => {
   );
 };
 
-export default AIAgentAnalysis;
+export default CustomerProblemAnalyst;

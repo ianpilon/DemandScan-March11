@@ -1,33 +1,28 @@
 import OpenAI from 'openai';
 
-export const JTBD_GAINS_SYSTEM_PROMPT = `You are an expert Jobs-to-be-Done (JTBD) analyst specializing in identifying and analyzing potential gains or positive outcomes that interviewees hope to achieve. Your task is to analyze the transcript and extract detailed insights about desired gains and improvements.
+export const JTBD_GAINS_SYSTEM_PROMPT = `You are an expert analyst specializing in identifying and analyzing potential gains or positive outcomes that interviewees hope to achieve. Your task is to analyze the provided interview transcript and extract detailed insights about desired gains and improvements. Use the transcript as your sole source of data, relying only on the explicit content provided.
 
 Focus on identifying:
-1. Desired Outcomes - What specific positive results they want to achieve
-2. Performance Gains - How they want to improve efficiency or effectiveness
-3. Social Gains - How they want to be perceived or what status they want to achieve
-4. Emotional Gains - What feelings or experiences they want to have
-5. Cost Savings - What resources (time, money, effort) they want to save
+
+1. Desired Outcomes: Specific positive results they want to achieve.
+2. Performance Gains: How they want to improve efficiency or effectiveness.
+3. Social Gains: How they want to be perceived or what status they aim to achieve.
+4. Emotional Gains: What feelings or experiences they want to have.
+5. Cost Savings: What resources (time, money, effort) they want to save.
+
+For every finding, you MUST:
+
+- Extract and include verbatim quotes from the transcript as evidence.
+- Explain how each quote directly supports your conclusion.
+- Avoid over-interpretation: prioritize explicit statements over inferred meanings. If inference is necessary, flag it as an assumption and note alternative interpretations.
 
 When determining confidence scores, use the following criteria:
 
-High Confidence (80-100%):
-- Multiple clear, direct quotes expressing desired gains
-- Consistent patterns of gain-seeking behavior across transcript
-- Strong emotional or practical motivation evident
-- Specific metrics or success criteria mentioned
+High Confidence (80-100%): Multiple clear, direct quotes expressing desired gains; consistent patterns of gain-seeking behavior across the transcript; strong emotional or practical motivation evident; specific metrics or success criteria mentioned.
 
-Moderate Confidence (60-79%):
-- Some supporting quotes but less explicit
-- General patterns of gain-seeking behavior
-- Implied motivation without strong articulation
-- General success criteria without specifics
+Moderate Confidence (60-79%): Some supporting quotes (may be less explicit); general patterns of gain-seeking behavior; implied motivation without strong articulation; general success criteria without specifics.
 
-Low Confidence (0-59%):
-- Limited or indirect references to gains
-- Inconsistent or contradictory desires
-- Unclear motivation or rationale
-- Vague or missing success criteria
+Low Confidence (0-59%): Limited or indirect references to gains; inconsistent or contradictory desires; unclear motivation or rationale; vague or missing success criteria.
 
 Format your response in the following JSON structure:
 
@@ -35,44 +30,50 @@ Format your response in the following JSON structure:
   "desiredOutcomes": [{
     "outcome": "string",
     "importance": "High" | "Medium" | "Low",
-    "confidence": number,
-    "evidence": ["string"]
+    "confidence": number,       // Based on the criteria above
+    "evidence": ["string"]      // Include verbatim quotes from the transcript
   }],
   "performanceGains": [{
     "gain": "string",
     "currentState": "string",
     "targetState": "string",
     "confidence": number,
-    "evidence": ["string"]
+    "evidence": ["string"]      // Include verbatim quotes
   }],
   "socialGains": [{
     "gain": "string",
-    "context": "string",
+    "context": "string",        // Situational context from the transcript
     "confidence": number,
-    "evidence": ["string"]
+    "evidence": ["string"]      // Include verbatim quotes
   }],
   "emotionalGains": [{
     "gain": "string",
-    "trigger": "string",
+    "trigger": "string",        // What prompts this emotional desire
     "confidence": number,
-    "evidence": ["string"]
+    "evidence": ["string"]      // Include verbatim quotes
   }],
   "costSavings": [{
     "resource": "string",
     "currentCost": "string",
     "targetSaving": "string",
     "confidence": number,
-    "evidence": ["string"]
+    "evidence": ["string"]      // Include verbatim quotes
   }],
   "analysis": {
-    "summary": "string",
-    "primaryGains": ["string"],
-    "confidenceScore": number,
-    "limitations": ["string"]
+    "summary": "string",          // Concise overview of key gains
+    "primaryGains": ["string"],   // List the most critical gains
+    "confidenceScore": number,    // Overall confidence based on the criteria
+    "limitations": ["string"]     // Note ambiguities, assumptions, or alternative interpretations
   }
-}`;
+}
 
-export const analyzeJTBDGains = async (chunkingResults, progressCallback, apiKey) => {
+Additional Instructions:
+
+- Maintain a professional, analytical tone suitable for an expert audience.
+- If the transcript lacks sufficient detail for a finding, note this as a limitation and assign a lower confidence score.
+- Do not generate hypothetical examples or data beyond the provided transcript.`;
+
+export const analyzeJTBDGains = async (analysisData, progressCallback, apiKey) => {
   if (!apiKey) {
     throw new Error('OpenAI API key is required. Please set your API key first.');
   }
@@ -85,13 +86,13 @@ export const analyzeJTBDGains = async (chunkingResults, progressCallback, apiKey
   try {
     progressCallback(10);
 
-    if (!chunkingResults || !chunkingResults.finalSummary) {
-      console.error('Invalid chunking results:', chunkingResults);
-      throw new Error('Invalid chunking results. Expected finalSummary to be present.');
+    if (!analysisData || !analysisData.transcript || typeof analysisData.transcript !== 'string') {
+      console.error('Invalid transcript data:', analysisData);
+      throw new Error('Valid transcript is required for Gains Analysis.');
     }
 
-    if (!chunkingResults.jtbdResults) {
-      console.error('Missing JTBD results:', chunkingResults);
+    if (!analysisData.jtbdResults) {
+      console.error('Missing JTBD results:', analysisData);
       throw new Error('JTBD Primary Goal results are required for Gains Analysis.');
     }
 
@@ -104,13 +105,13 @@ export const analyzeJTBDGains = async (chunkingResults, progressCallback, apiKey
       },
       {
         role: 'user',
-        content: `Analyze the following transcript summary and JTBD Primary Goal results to identify potential gains and positive outcomes:
+        content: `Analyze the following transcript and JTBD Primary Goal results to identify potential gains and positive outcomes:
 
-Transcript Summary:
-${chunkingResults.finalSummary}
+Transcript:
+${analysisData.transcript}
 
 JTBD Primary Goal Results:
-${JSON.stringify(chunkingResults.jtbdResults, null, 2)}
+${JSON.stringify(analysisData.jtbdResults, null, 2)}
 
 Please identify and analyze all potential gains, focusing on desired outcomes, performance improvements, social gains, emotional benefits, and cost savings.`
       }

@@ -9,8 +9,7 @@ export const agents = [
     id: 'jtbd',
     name: "View Customers Primary Goal",
     description: "Analyzes the transcript to identify and extract Jobs-to-be-Done (JTBD) goals mentioned by the interviewee.",
-    icon: '🎯',
-    requiresPreviousAgent: 'longContextChunking'
+    icon: '🎯'
   },
   {
     id: 'jtbdGains',
@@ -37,8 +36,7 @@ export const agents = [
     id: 'needsAnalysis',
     name: "Needs Analysis Agent",
     description: "Analyzes discovery call transcripts to identify both immediate and latent needs, examining indicators like urgency, metrics, stakeholder requirements, and potential future risks.",
-    icon: '🔎',
-    requiresPreviousAgent: 'longContextChunking'
+    icon: '🔎'
   },
   {
     id: 'demandAnalyst',

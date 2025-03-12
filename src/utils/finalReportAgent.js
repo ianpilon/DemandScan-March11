@@ -63,8 +63,9 @@ export const generateFinalReport = async (allResults, progressCallback, apiKey) 
       throw new Error('No analysis results available to generate final report.');
     }
 
-    // Validate required previous results
-    const requiredAgents = ['longContextChunking', 'jtbd', 'jtbdGains', 'painExtractor', 'problemAwareness'];
+    // Validate required previous results - we need at least transcript and some analysis results
+    // Note: longContextChunking is no longer required in the new flow
+    const requiredAgents = ['transcript', 'jtbdGains', 'painExtractor', 'problemAwareness'];
     const missingAgents = requiredAgents.filter(agent => !allResults[agent]);
     
     if (missingAgents.length > 0) {
@@ -86,10 +87,23 @@ export const generateFinalReport = async (allResults, progressCallback, apiKey) 
     ];
 
     for (const [agentId, results] of Object.entries(allResults)) {
-      if (agentId === 'longContextChunking') continue; // Skip chunking results
+      // Skip transcript and any empty results
+      if (agentId === 'transcript' || !results) continue;
+      
+      // Handle different result formats
+      let resultData = results;
+      if (typeof results === 'string') {
+        try {
+          resultData = JSON.parse(results);
+          console.log(`Successfully parsed ${agentId} results from string`);
+        } catch (e) {
+          console.warn(`Could not parse ${agentId} results as JSON, using as-is`, e);
+        }
+      }
+      
       summaryMessages.push({
         role: 'user',
-        content: `Please summarize these ${agentId} results concisely: ${JSON.stringify(results)}`
+        content: `Please summarize these ${agentId} results concisely: ${JSON.stringify(resultData)}`
       });
     }
 

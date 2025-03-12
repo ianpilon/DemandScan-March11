@@ -1605,22 +1605,164 @@ const AnalysisResults = ({ showResult, localAnalysisResults, longContextResults,
   /**
    * Handles download of analysis results
    * 
-   * CHANGES (2025-02-03):
-   * - Improved error handling and empty state display
-   * - Added confidence score display
-   * - Improved UI organization and readability
+   * CHANGES (2025-03-12):
+   * - Changed to download HTML replica of the current view instead of JSON
+   * - Added styling to make the downloaded HTML match the UI appearance
+   * - Includes DemandScan branding in the downloaded file
    */
   const handleDownload = () => {
     const result = localAnalysisResults[showResult];
     if (!result) return;
-
-    const jsonString = JSON.stringify(result, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    
+    // Get all stylesheets from the current document
+    const stylesheets = Array.from(document.styleSheets);
+    let cssText = '';
+    
+    // Extract CSS rules from all stylesheets
+    stylesheets.forEach(sheet => {
+      try {
+        // Skip external stylesheets that might cause CORS issues
+        if (sheet.href && !sheet.href.startsWith(window.location.origin)) return;
+        
+        const rules = sheet.cssRules || sheet.rules;
+        for (let i = 0; i < rules.length; i++) {
+          cssText += rules[i].cssText + '\n';
+        }
+      } catch (e) {
+        console.warn('Could not access stylesheet rules:', e);
+      }
+    });
+    
+    // Get the current page content
+    const resultsContainer = document.querySelector('.space-y-8');
+    if (!resultsContainer) return;
+    
+    // Clone the container to modify it without affecting the UI
+    const containerClone = resultsContainer.cloneNode(true);
+    
+    // Remove any download buttons from the clone
+    const downloadButtons = containerClone.querySelectorAll('button');
+    downloadButtons.forEach(button => {
+      if (button.textContent.includes('Download')) {
+        button.parentNode.removeChild(button);
+      }
+    });
+    
+    // Get the title for the report
+    const title = showResult === 'longContextChunking' 
+      ? 'Transcript Analysis' 
+      : (showResult && agents.find(a => a.id === showResult)?.name) || 'Analysis Results';
+    
+    // Set the background color to #FAFAFA as specified
+    const appBackgroundColor = '#FAFAFA';
+    
+    // Create a new HTML document with all the styling
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>DemandScan - ${title}</title>
+        
+        <!-- Application CSS -->
+        <style>
+          ${cssText}
+          
+          /* Additional styling for the report */
+          body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: ${appBackgroundColor};
+          }
+          
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eaeaea;
+          }
+          
+          .report-container {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+          }
+          
+          .footer {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eaeaea;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+          }
+          
+          /* Override any problematic styles */
+          button { display: none !important; }
+          
+          /* Print-friendly styles */
+          @media print {
+            body { padding: 0; background-color: white; }
+            .report-container { box-shadow: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <h1>DemandScan Analysis</h1>
+            <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+          </div>
+        </div>
+        
+        <!-- Main content with the same styling as the app -->
+        <div class="report-container">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <div>
+                <h2 class="text-2xl font-bold">${title}</h2>
+                <p class="text-muted-foreground">
+                  ${showResult === 'longContextChunking' 
+                    ? 'The remaining analysis process uses this data as input which helps ensure the AI gives explicit and accurate results.'
+                    : showResult === 'jtbd'
+                      ? 'Results from the transcript identifying the Jobs-to-be-Done (JTBD) goals mentioned by the interviewee.'
+                      : 'Here are the detailed results of the analysis'
+                  }
+                </p>
+              </div>
+            </div>
+            
+            <div class="space-y-8">
+              ${containerClone.innerHTML}
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>Generated by DemandScan - Customer Problem Analysis Tool</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Create a blob with the HTML content
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     
+    // Create a download link and trigger it
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${showResult}_results.json`;
+    a.download = `${showResult === 'longContextChunking' 
+      ? 'transcript_analysis' 
+      : showResult}_results.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

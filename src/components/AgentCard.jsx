@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,9 @@ const AgentCard = ({
 }) => {
   // For tracking state changes
   const prevIsAnalyzing = useRef(isAnalyzing);
+  // For simulated progress effect
+  const [displayProgress, setDisplayProgress] = useState(progress);
+  const progressTimerRef = useRef(null);
   const prevIsOptimizing = useRef(isOptimizingTranscript);
   const prevProgress = useRef(progress);
   const prevOptProgress = useRef(optimizationProgress);
@@ -50,10 +53,61 @@ const AgentCard = ({
     prevOptProgress.current = optimizationProgress;
   }, [agent.id, isAnalyzing, isOptimizingTranscript, progress, optimizationProgress]);
   
+  // Effect for simulating incremental progress movement
+  useEffect(() => {
+    // Clear any existing timer when component unmounts or when analysis stops
+    return () => {
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+    };
+  }, []);
+  
+  // Effect to handle progress updates and simulation
+  useEffect(() => {
+    // Update display progress when actual progress changes
+    setDisplayProgress(progress);
+    
+    // Clear any existing timer when progress changes
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    
+    // Only set up incremental progress if we're analyzing and not at 100%
+    if ((isAnalyzing || isOptimizingTranscript) && progress < 100 && !hasResults) {
+      // Calculate the maximum progress we should simulate to (never exceed actual progress + 10%)
+      const maxSimulatedProgress = Math.min(progress + 10, 95);
+      
+      // Start a timer that increments the display progress slightly every 300ms
+      progressTimerRef.current = setInterval(() => {
+        setDisplayProgress(current => {
+          // Only increment if we haven't reached the max simulated progress
+          if (current < maxSimulatedProgress) {
+            // Increment by a random small amount between 0.1 and 0.5
+            return Math.min(current + (Math.random() * 0.4 + 0.1), maxSimulatedProgress);
+          }
+          return current;
+        });
+      }, 300);
+    }
+    
+    // Clean up timer when progress reaches 100 or analysis stops
+    if (progress >= 100 || hasResults || (!isAnalyzing && !isOptimizingTranscript)) {
+      if (progressTimerRef.current) {
+        clearInterval(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+    }
+  }, [progress, isAnalyzing, isOptimizingTranscript, hasResults]);
+  
   const getStatusBadge = () => {
     // First priority: Show grey optimization progress
     if (isOptimizingTranscript) {
-      console.log('Showing grey progress bar:', optimizationProgress);
+      // Use displayProgress for smoother animation
+      const displayOptProgress = isOptimizingTranscript ? displayProgress : optimizationProgress;
+      console.log('Showing grey progress bar:', displayOptProgress);
       return (
         <Badge 
           variant="outline" 
@@ -64,7 +118,7 @@ const AgentCard = ({
           <div className="flex-grow h-2 bg-gray-200 rounded-full overflow-hidden">
             <div 
               className="h-full bg-gray-400" 
-              style={{ width: `${optimizationProgress}%` }}
+              style={{ width: `${displayOptProgress}%` }}
             />
           </div>
         </Badge>
@@ -72,9 +126,10 @@ const AgentCard = ({
     }
     
     // Second priority: Show green analysis progress
-    // Only show if not optimizing transcript
-    if (isAnalyzing && !isOptimizingTranscript) {
-      console.log('Showing green progress bar:', progress);
+    // Only show if not optimizing transcript AND no results available yet
+    if (isAnalyzing && !isOptimizingTranscript && !hasResults) {
+      // Use displayProgress for smoother animation
+      console.log('Showing green progress bar:', displayProgress, 'hasResults:', hasResults);
       return (
         <Badge 
           variant="outline" 
@@ -85,7 +140,7 @@ const AgentCard = ({
           <div className="flex-grow h-2 bg-green-100 rounded-full overflow-hidden">
             <div 
               className="h-full bg-green-500" 
-              style={{ width: `${progress}%` }}
+              style={{ width: `${displayProgress}%` }}
             />
           </div>
         </Badge>

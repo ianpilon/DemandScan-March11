@@ -59,16 +59,16 @@ Guidelines for analysis:
  * - Improved error handling and logging
  * - Returns clean needs analysis results without wrapping
  * 
- * @param {Object} analysisResults - The complete analysis results object
+ * @param {Object} analysisData - Object containing the transcript
  * @param {Function} progressCallback - Callback for progress updates
  * @param {String} apiKey - OpenAI API key
  * @returns {Object} Clean needs analysis results
  */
-export const analyzeNeeds = async (analysisResults, progressCallback, apiKey) => {
+export const analyzeNeeds = async (analysisData, progressCallback, apiKey) => {
   // Log initial state for debugging
   console.log('Starting Needs Analysis with:', {
-    hasAnalysisResults: !!analysisResults,
-    resultKeys: Object.keys(analysisResults || {}),
+    hasTranscript: !!analysisData?.transcript,
+    transcriptLength: analysisData?.transcript?.length,
     hasProgressCallback: !!progressCallback,
     hasApiKey: !!apiKey
   });
@@ -78,9 +78,9 @@ export const analyzeNeeds = async (analysisResults, progressCallback, apiKey) =>
   }
 
   // Validate input structure
-  if (!analysisResults?.longContextChunking?.finalSummary) {
-    console.error('Invalid analysis results:', analysisResults);
-    throw new Error('Invalid analysis results. Expected longContextChunking.finalSummary to be present.');
+  if (!analysisData?.transcript || typeof analysisData.transcript !== 'string') {
+    console.error('Invalid transcript data:', analysisData);
+    throw new Error('Valid transcript is required for Needs Analysis.');
   }
 
   const openai = new OpenAI({
@@ -91,8 +91,8 @@ export const analyzeNeeds = async (analysisResults, progressCallback, apiKey) =>
   try {
     progressCallback(10);
 
-    const analysisContent = analysisResults.longContextChunking.finalSummary;
-    console.log('Starting needs analysis with content length:', analysisContent.length);
+    const transcriptContent = analysisData.transcript;
+    console.log('Starting needs analysis with transcript length:', transcriptContent.length);
 
     progressCallback(30);
 
@@ -104,7 +104,7 @@ export const analyzeNeeds = async (analysisResults, progressCallback, apiKey) =>
       },
       {
         role: 'user',
-        content: `Please analyze this interview transcript to identify immediate and latent needs:\n\n${analysisContent}`
+        content: `Please analyze this interview transcript to identify immediate and latent needs:\n\n${transcriptContent}`
       }
     ];
 

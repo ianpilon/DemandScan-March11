@@ -12,8 +12,19 @@ export const extractIntervieweeResponses = (transcript) => {
     throw new Error('No transcript provided for preprocessing');
   }
 
+  // Handle different input formats
+  let transcriptText = transcript;
+  
+  // If it's an object with a transcript property, extract it
+  if (typeof transcript === 'object' && transcript !== null) {
+    if (transcript.transcript) {
+      console.log('Found transcript property in object input');
+      transcriptText = transcript.transcript;
+    }
+  }
+
   // Split transcript into lines
-  const lines = transcript.split('\n');
+  const lines = transcriptText.split('\n');
   
   let intervieweeResponses = [];
   let currentSpeaker = null;
@@ -57,12 +68,12 @@ export const extractIntervieweeResponses = (transcript) => {
   if (!metadata.interviewerPattern && !metadata.intervieweePattern) {
     console.log('No speaker patterns found, treating chunks as responses');
     return {
-      processedTranscript: transcript,
+      processedTranscript: transcriptText,
       metadata: {
         ...metadata,
         responsesExtracted: lines.length,
-        originalLength: transcript.length,
-        processedLength: transcript.length,
+        originalLength: transcriptText.length,
+        processedLength: transcriptText.length,
         processedLines: lines.length,
         chunkedFormat: true
       }
@@ -126,7 +137,7 @@ export const extractIntervieweeResponses = (transcript) => {
     metadata: {
       ...metadata,
       responsesExtracted: intervieweeResponses.length,
-      originalLength: transcript.length,
+      originalLength: transcriptText.length,
       processedLength: processedTranscript.length
     }
   };

@@ -11,66 +11,71 @@ const updateProgress = async (progress, progressCallback) => {
   await delay(100);
 };
 
-const SYSTEM_PROMPT = `You are an expert JTBD Pain Point and Friction Analyzer specializing in identifying customer pain points, struggles, and friction points preventing progress. Your task is to analyze the provided transcript and output ONLY a valid JSON object containing the analysis results.
+const SYSTEM_PROMPT = `You are an expert JTBD Pain Point and Friction Analyzer specializing in identifying customer pain points, struggles, and friction points preventing progress. Your task is to analyze the provided interview transcript and output ONLY a valid JSON object containing the analysis results, based solely on the explicit content of the transcript.
 
 Analysis Instructions:
-1. Analyze the provided responses to identify customer pain points
-2. Each pain point must be supported by direct quotes from the transcript
-3. Analyze how these pain points create friction that prevents progress towards goals
-4. Perform a CURSE analysis of the most significant problems
+
+1. Identify customer pain points supported by direct, verbatim quotes from the transcript.
+2. For each pain point, explain how the quote evidences the pain and its impact.
+3. Analyze how these pain points create friction that prevents progress toward goals, using quotes to justify the link.
+4. Perform a CURSE analysis (Crucial, Ubiquitous, Recurring, Specific, Extreme) on the most significant problems, tying each criterion to transcript evidence.
 5. Output a JSON object with this structure:
-   {
-     "identifiedPains": [
-       {
-         "painStatement": "Clear description of the pain point",
-         "category": "Technical/Process/General/etc",
-         "severity": "High/Medium/Low",
-         "evidence": "Direct quote from transcript supporting this pain point",
-         "impact": "Description of the impact this pain point has"
-       }
-     ],
-     "frictionAnalysis": [
-       {
-         "frictionPoint": "Description of how this creates friction",
-         "severity": "High/Medium/Low",
-         "analysis": "Detailed analysis of how this friction prevents progress",
-         "relatedGoal": "The goal this friction is blocking",
-         "recommendation": "Optional suggestion for addressing this friction",
-         "progressImpact": "Specific explanation of how this friction impedes progress"
-       }
-     ],
-     "metrics": {
-       "coverage": 0.0 to 1.0,
-       "confidence": 0.0 to 1.0,
-       "severityScore": 0.0 to 1.0
-     },
-     "curseAnalysis": {
-       "summary": "Overview of the CURSE analysis findings",
-       "problems": [
-         {
-           "title": "Clear title of the problem",
-           "severity": "1-10 score",
-           "crucial": "Explanation of why it's crucial",
-           "ubiquitous": "Explanation of how widespread it is",
-           "recurring": "Explanation of how frequently it occurs",
-           "specific": "Explanation of how well-defined it is",
-           "extreme": "Explanation of the severity of impact",
-           "evidence": "Supporting evidence from the transcript"
-         }
-       ]
-     }
-   }
+
+{
+  "identifiedPains": [
+    {
+      "painStatement": "Clear description of the pain point",
+      "category": "Technical/Process/General/etc",
+      "severity": "High/Medium/Low",
+      "evidence": "Direct verbatim quote from transcript supporting this pain point",
+      "impact": "Description of how this pain point affects the interviewee"
+    }
+  ],
+  "frictionAnalysis": [
+    {
+      "frictionPoint": "Description of how this creates friction",
+      "severity": "High/Medium/Low",
+      "analysis": "Detailed explanation of how this friction prevents progress, supported by transcript evidence",
+      "relatedGoal": "The specific goal this friction blocks",
+      "recommendation": "Optional suggestion for addressing this friction, grounded in the transcript",
+      "progressImpact": "Specific explanation of how this friction impedes progress, tied to evidence"
+    }
+  ],
+  "metrics": {
+    "coverage": 0.0 to 1.0,  // Proportion of transcript pain points addressed (e.g., 0.8 = 80%)
+    "confidence": 0.0 to 1.0,  // Overall confidence based on quote clarity and consistency (e.g., 0.9 = 90%)
+    "severityScore": 0.0 to 1.0  // Normalized average of pain/friction severity (e.g., High=1, Medium=0.5, Low=0.25)
+  },
+  "curseAnalysis": {
+    "summary": "Concise overview of the CURSE analysis findings",
+    "problems": [
+      {
+        "title": "Clear title of the problem",
+        "severity": "1-10 score",  // Based on combined CURSE factors
+        "crucial": "Explanation of why it's critical, with supporting quote",
+        "ubiquitous": "Explanation of how widespread it is, with evidence",
+        "recurring": "Explanation of how frequently it occurs, with evidence",
+        "specific": "Explanation of how well-defined it is, with evidence",
+        "extreme": "Explanation of the severity of impact, with evidence",
+        "evidence": "Direct verbatim quote from transcript"
+      }
+    ]
+  }
+}
 
 Additional Instructions:
-- Focus on how pain points actively prevent progress towards goals
-- Only include friction points that are significant blockers
-- Provide clear analysis of why each friction point impedes progress
-- If no significant friction points are found, return an empty array for frictionAnalysis
-- Never invent or assume points - only report what is clearly supported by the evidence
-- For the CURSE analysis, focus on the most significant problems that meet multiple CURSE criteria
-- Score severity on a scale of 1-10 based on the combined CURSE factors
 
-Remember: Output ONLY the JSON object - no other text or formatting.`;
+- For every pain point, friction point, and CURSE problem, include a verbatim quote from the transcript and explain its relevance in the respective field (e.g., impact, analysis, crucial).
+- Prioritize explicit statements over inferred meanings. If inference is needed, note it as a limitation in curseAnalysis.summary.
+- Focus on friction points that significantly block progress, supported by transcript evidence. If none are found, return an empty frictionAnalysis array.
+- Do not invent or assume data—base all findings strictly on the transcript.
+- Calculate metrics as follows:
+  - coverage: Proportion of identifiable pain points addressed (e.g., 8/10 = 0.8).
+  - confidence: Average confidence based on quote clarity and consistency (e.g., multiple clear quotes = 0.9).
+  - severityScore: Normalized average of severity ratings (High=1, Medium=0.5, Low=0.25).
+- For CURSE analysis, select problems meeting at least three criteria, scoring severity (1-10) based on the strength of all five factors combined.
+- Maintain an analytical tone, avoiding vague or speculative language.
+- Output ONLY the JSON object—no additional text, explanations, or formatting.`;
 
 const FRICTION_ANALYSIS_PROMPT = `You are an AI assistant specialized in analyzing friction points that prevent progress towards goals.
 
@@ -173,13 +178,13 @@ Your output should be formatted in JSON with the following structure:
 
 Ensure all responses are in valid JSON format and include specific evidence from the transcript to support each identified need and insight.`;
 
-export const analyzePainPoints = async (chunkingResults, progressCallback) => {
-  if (!localStorage.getItem('llmApiKey')) {
+export const analyzePainPoints = async (input, progressCallback, apiKey) => {
+  if (!apiKey && !localStorage.getItem('llmApiKey')) {
     throw new Error('OpenAI API key is required. Please set your API key first.');
   }
 
   const openai = new OpenAI({
-    apiKey: localStorage.getItem('llmApiKey'),
+    apiKey: apiKey || localStorage.getItem('llmApiKey'),
     dangerouslyAllowBrowser: true
   });
 
@@ -187,18 +192,27 @@ export const analyzePainPoints = async (chunkingResults, progressCallback) => {
   await updateProgress(2, progressCallback);
 
   try {
-    // Extract the complete transcript from chunking results
-    if (!chunkingResults || !Array.isArray(chunkingResults.chunks)) {
-      console.error('Invalid chunking results:', chunkingResults);
-      throw new Error('Invalid chunking results. Expected chunks array to be present.');
+    // Extract the transcript and gains analysis from input
+    if (!input || !input.transcript) {
+      console.error('Invalid input:', input);
+      throw new Error('Invalid input. Transcript is required.');
+    }
+    
+    if (!input.gainsAnalysis) {
+      console.error('Missing gains analysis in input:', input);
+      throw new Error('Gains analysis results are required.');
     }
 
-    // Get the complete transcript from the chunks
-    const completeTranscript = chunkingResults.chunks.join('\n\n');
+    // Get the complete transcript
+    const completeTranscript = input.transcript;
     
     if (!completeTranscript) {
-      throw new Error('No transcript content found in chunking results.');
+      throw new Error('No transcript content found in input.');
     }
+    
+    console.log('Received transcript and gains analysis for pain point extraction');
+    console.log('Transcript length:', completeTranscript.length);
+    console.log('Gains analysis available:', !!input.gainsAnalysis);
 
     // Preprocess the transcript to extract only interviewee responses
     console.log('Preprocessing transcript to extract interviewee responses...');
@@ -211,16 +225,39 @@ export const analyzePainPoints = async (chunkingResults, progressCallback) => {
     console.log('Preprocessing metadata:', preprocessed.metadata);
     console.log('Starting Pain Point and Friction analysis on preprocessed transcript');
 
+    // Include gains analysis results for enhanced pain point detection
+    console.log('Including gains analysis in the pain points extraction');
+    
+    const gainResults = input.gainsAnalysis;
+    console.log('Gains analysis structure:', Object.keys(gainResults));
+    
+    // Prepare the user content with both transcript and gains
+    // Handle the case where gainsAnalysis might be a string
+    let parsedGains = gainResults;
+    if (typeof gainResults === 'string') {
+      try {
+        parsedGains = JSON.parse(gainResults);
+        console.log('Successfully parsed string gains results');
+      } catch (e) {
+        console.warn('Could not parse gains results as JSON, using as-is', e);
+      }
+    }
+    
+    const userContent = JSON.stringify({
+      transcript: preprocessed.processedTranscript,
+      gainsAnalysis: parsedGains
+    });
+    
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-16k",
       messages: [
         {
           role: "system",
-          content: SYSTEM_PROMPT
+          content: SYSTEM_PROMPT + '\n\nImportant: Use the gains analysis results to inform your understanding of pain points. Look for areas where expected gains are not being met or where friction exists in achieving desired outcomes.'
         },
         {
           role: "user",
-          content: preprocessed.processedTranscript
+          content: userContent
         }
       ],
       temperature: 0.5,

@@ -1,34 +1,38 @@
 import OpenAI from 'openai';
 
-export const JTBD_PRIMARY_GOAL_SYSTEM_PROMPT = `You are an expert Jobs-to-be-Done (JTBD) analyst specializing in identifying primary goals from customer interviews. Your task is to analyze the transcript and identify the core jobs, tasks, and objectives that the interviewee is trying to accomplish.
+export const JTBD_PRIMARY_GOAL_SYSTEM_PROMPT = `You are an expert Jobs-to-be-Done (JTBD) analyst specializing in identifying primary goals from customer interviews. Your task is to analyze the provided transcript analysis and identify the core jobs, tasks, and objectives that the interviewee is trying to accomplish. The input is a detailed summary of an interview transcript, already processed and summarized. Use this analysis as your sole source of data to extract JTBD insights, relying only on the explicit content provided.
 
 Focus on identifying:
-1. Primary functional jobs (what they're trying to accomplish)
-2. Emotional jobs (how they want to feel)
-3. Social jobs (how they want to be perceived)
-4. Current approaches and workarounds
-5. Success criteria and metrics
 
-The input will be a detailed analysis of the interview transcript, which has already been processed and summarized. Use this analysis to extract JTBD insights.
+1. Primary functional jobs (what they're trying to accomplish practically)
+2. Emotional jobs (how they want to feel while accomplishing it)
+3. Social jobs (how they want to be perceived by others)
+4. Current approaches and workarounds (what they're doing now to address these jobs)
+5. Success criteria and metrics (how they measure success)
+
+For every finding, you MUST:
+- Extract and include verbatim quotes from the transcript analysis as evidence.
+- Explain how each quote directly supports your conclusion.
+- Avoid over-interpretation: prioritize explicit statements over inferred meanings. If inference is necessary, flag it as an assumption and note alternative interpretations.
 
 When determining confidence scores, use the following criteria:
 
 High Confidence (80-100%):
 - Multiple clear, direct quotes supporting the finding
-- Consistent patterns across different parts of the transcript
-- Strong alignment between stated goals and observed behaviors
+- Consistent patterns across the transcript
+- Strong alignment between stated goals and behaviors
 - Minimal contradictions or ambiguity
 
 Moderate Confidence (60-79%):
-- Some supporting quotes but may be less direct
-- Patterns exist but with some inconsistencies
+- Some supporting quotes (may be less direct)
+- Patterns exist but with minor inconsistencies
 - General alignment between goals and behaviors
-- Some ambiguity or potential alternative interpretations
+- Some ambiguity or alternative interpretations possible
 
 Low Confidence (0-59%):
-- Limited or indirect supporting evidence
+- Limited or indirect evidence
 - Inconsistent or contradictory patterns
-- Misalignment between stated goals and behaviors
+- Misalignment between goals and behaviors
 - High ambiguity or multiple competing interpretations
 
 Format your response in the following JSON structure:
@@ -36,39 +40,44 @@ Format your response in the following JSON structure:
 {
   "primaryGoal": {
     "statement": "string",
-    "confidence": number,  // Based on above criteria
-    "context": "string"   // Include key supporting evidence
+    "confidence": number,  // Based on the criteria above
+    "context": "string"    // Summarize key supporting evidence with at least one verbatim quote
   },
   "jobComponents": {
     "functional": {
       "description": "string",
-      "evidence": ["string"]  // Include quotes or specific examples
+      "evidence": ["string"]  // Include verbatim quotes or specific examples from the transcript
     },
     "emotional": {
       "description": "string",
-      "evidence": ["string"]
+      "evidence": ["string"]  // Include verbatim quotes or specific examples
     },
     "social": {
       "description": "string",
-      "evidence": ["string"]
+      "evidence": ["string"]  // Include verbatim quotes or specific examples
     }
   },
   "currentApproaches": [{
     "description": "string",
-    "effectiveness": "string",
-    "evidence": "string"
+    "effectiveness": "string",  // e.g., "Effective", "Partially effective", "Ineffective"
+    "evidence": "string"        // Include a verbatim quote or specific example
   }],
   "successCriteria": [{
     "criterion": "string",
     "importance": "High" | "Medium" | "Low",
-    "evidence": "string"
+    "evidence": "string"        // Include a verbatim quote or specific example
   }],
   "analysis": {
-    "summary": "string",
-    "confidenceScore": number,  // Overall confidence based on above criteria
-    "limitations": ["string"]   // Note any factors affecting confidence
+    "summary": "string",          // Concise overview of findings
+    "confidenceScore": number,    // Overall confidence based on the criteria
+    "limitations": ["string"]     // Note ambiguities, assumptions, or alternative interpretations
   }
-}`;
+}
+
+Additional Instructions:
+- Maintain a professional, analytical tone suitable for a JTBD expert audience.
+- If the transcript analysis lacks sufficient detail for a finding, note this as a limitation and assign a lower confidence score.
+- Do not generate hypothetical examples or data beyond the provided input.`;
 
 const SYNTHESIS_PROMPT = `You are an expert Jobs-to-be-Done (JTBD) analyst. Your task is to synthesize multiple JTBD analyses into a single cohesive analysis. Review all analyses and create a unified view that captures the most important and consistent findings while resolving any conflicts.
 
@@ -125,9 +134,9 @@ const synthesizeAnalyses = async (openai, analyses) => {
   return JSON.parse(response.choices[0].message.content);
 };
 
-export const analyzeJTBDPrimaryGoal = async (chunkingResults, progressCallback, apiKey) => {
+export const analyzeJTBDPrimaryGoal = async (transcriptData, progressCallback, apiKey) => {
   console.log('Starting JTBD Primary Goal Analysis with:', {
-    hasChunkingResults: !!chunkingResults,
+    hasTranscript: !!transcriptData,
     hasProgressCallback: !!progressCallback,
     hasApiKey: !!apiKey
   });
@@ -137,9 +146,9 @@ export const analyzeJTBDPrimaryGoal = async (chunkingResults, progressCallback, 
     throw new Error('OpenAI API key is required. Please set your API key first.');
   }
 
-  if (!chunkingResults || !chunkingResults.finalSummary) {
-    console.error('Invalid chunking results:', chunkingResults);
-    throw new Error('Invalid chunking results. Expected finalSummary to be present.');
+  if (!transcriptData || typeof transcriptData !== 'string') {
+    console.error('Invalid transcript data:', typeof transcriptData);
+    throw new Error('Invalid transcript data. Expected a string.');
   }
 
   const openai = new OpenAI({
@@ -151,7 +160,7 @@ export const analyzeJTBDPrimaryGoal = async (chunkingResults, progressCallback, 
     if (progressCallback) progressCallback(10);
     console.log('Initialized OpenAI client');
 
-    // Use the final summary from the chunking results
+    // Use the raw transcript directly
     const messages = [
       {
         role: 'system',
@@ -159,7 +168,7 @@ export const analyzeJTBDPrimaryGoal = async (chunkingResults, progressCallback, 
       },
       {
         role: 'user',
-        content: `Please analyze this interview transcript summary to identify the primary Jobs-to-be-Done:\n\n${chunkingResults.finalSummary}`
+        content: `Please analyze this interview transcript to identify the primary Jobs-to-be-Done:\n\n${transcriptData}`
       }
     ];
 

@@ -4,7 +4,6 @@ import { agents } from '../data/agents';
 
 // Define the strict sequence of agents
 const AGENT_SEQUENCE = [
-  'longContextChunking',
   'jtbd',
   'jtbdGains',
   'painExtractor',
@@ -35,9 +34,11 @@ const AgentSelection = ({
   return (
     <div className="space-y-4">
       {agents.filter(agent => !['longContextChunking', 'needsAnalysis', 'demandAnalyst', 'opportunityQualification'].includes(agent.id)).map((agent) => {
+        // Check if this agent is currently being analyzed
         const isAnalyzing = analyzingAgents.has(agent.id);
         const hasResults = isDone(agent.id);
         const progress = agentProgress[agent.id] || 0;
+        // Get the current agent in sequence for highlighting purposes
         const currentAgent = getCurrentAgent();
 
         return (
@@ -46,7 +47,7 @@ const AgentSelection = ({
             agent={agent}
             progress={progress}
             onViewResults={() => onViewResults(agent.id)}
-            isAnalyzing={isAnalyzing && agent.id === currentAgent}
+            isAnalyzing={isAnalyzing || (agent.id === 'jtbd' && analyzingAgents.size > 0)}
             hasResults={hasResults}
             // Pass optimization status only to the JTBD card when longContextChunking is running
             isOptimizingTranscript={agent.id === 'jtbd' && isOptimizingTranscript}

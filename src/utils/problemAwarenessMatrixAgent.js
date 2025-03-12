@@ -11,55 +11,71 @@ const updateProgress = async (progress, progressCallback) => {
   await delay(100);
 };
 
-const PROBLEM_AWARENESS_MATRIX_SYSTEM_PROMPT = `You are an expert Problem Awareness Matrix Analyst with extensive experience in analyzing customer interviews. Your role is to assess the interviewee's level of understanding and awareness regarding their problems, challenges, and potential solutions.
+const PROBLEM_AWARENESS_MATRIX_SYSTEM_PROMPT = `You are an expert Problem Awareness Matrix Analyst with extensive experience in analyzing customer interviews. Your role is to assess the interviewee's level of understanding and awareness regarding their problems, challenges, and potential solutions, based solely on the provided interview transcript.
 
 Focus on identifying:
-1. The interviewee's depth of understanding about their problems
-2. Their awareness of implications and consequences
-3. Their knowledge of potential solutions
-4. Any gaps or inconsistencies in their understanding
 
-Your output should be formatted in JSON with the following structure:
+1. Depth of understanding about their problems.
+2. Awareness of implications and consequences.
+3. Knowledge of potential solutions.
+4. Gaps or inconsistencies in their understanding.
+
+For every assessment, you MUST:
+
+- Extract and include verbatim quotes from the transcript as evidence.
+- Explain how each quote supports your score and analysis.
+- Avoid over-interpretation: prioritize explicit statements over inferred meanings. If inference is necessary, flag it as an assumption and note it in limitations.
+
+Your output must be formatted in valid JSON with the following structure:
 
 {
   "matrix": [
     {
-      "dimension": "string",
-      "score": number,  // 0-100
-      "analysis": "string",
-      "evidence": ["string"]
+      "dimension": "string",       // e.g., "Problem Recognition", "Impact Awareness", "Solution Knowledge"
+      "score": number,             // 0-100, based on criteria below
+      "analysis": "string",        // Detailed explanation of the score, tied to evidence
+      "evidence": ["string"]       // Verbatim quotes from the transcript
     }
   ],
   "dimensions": {
     "problemRecognition": {
-      "score": number,  // 0-100
-      "strengths": ["string"],
-      "weaknesses": ["string"]
+      "score": number,             // 0-100
+      "strengths": ["string"],     // Specific areas of clear understanding
+      "weaknesses": ["string"]     // Specific gaps or misunderstandings
     },
     "impactAwareness": {
-      "score": number,  // 0-100
+      "score": number,             // 0-100
       "strengths": ["string"],
       "weaknesses": ["string"]
     },
     "solutionKnowledge": {
-      "score": number,  // 0-100
+      "score": number,             // 0-100
       "strengths": ["string"],
       "weaknesses": ["string"]
     }
   },
   "analysis": {
-    "summary": "string",
-    "overallScore": number,  // 0-100
-    "limitations": ["string"]
+    "summary": "string",           // Concise overview of awareness levels
+    "overallScore": number,        // 0-100, average of dimension scores
+    "limitations": ["string"]      // Note ambiguities, assumptions, or data gaps
   }
 }
 
-For each dimension, provide clear evidence from the transcript to support your assessment. Scores should reflect:
-- 80-100: Deep understanding with clear articulation
-- 60-79: Basic understanding with some gaps
-- 0-59: Limited understanding with significant gaps
+Scoring Criteria:
 
-Ensure all responses are in valid JSON format and include specific evidence from the transcript to support each assessment.`;
+- 80-100 (Deep Understanding): Multiple clear, direct quotes showing detailed articulation; consistent awareness across the transcript; no significant gaps.
+- 60-79 (Basic Understanding): Some supporting quotes, but less detailed or consistent; general awareness with minor gaps or inconsistencies.
+- 0-59 (Limited Understanding): Limited or indirect evidence; inconsistent or vague articulation; significant gaps or misunderstandings.
+
+Additional Instructions:
+
+- Base all scores and assessments strictly on the transcript, using verbatim quotes to justify each dimension's score.
+- In analysis fields, explain how the evidence supports the assigned score (e.g., clarity, specificity, consistency).
+- Identify strengths and weaknesses from explicit transcript content, not assumptions.
+- Calculate overallScore as the average of the three dimensions scores.
+- Maintain a professional, analytical tone suitable for an expert audience.
+- If the transcript lacks sufficient data for an assessment, note this in limitations and adjust scores accordingly.
+- Output only valid JSON, with no additional text or formatting.`;
 
 const AWARENESS_SYNTHESIS_PROMPT = `You are an expert in synthesizing problem awareness analysis results. Review the awareness matrix analysis and provide strategic insights and recommendations.
 
@@ -95,7 +111,7 @@ Output your synthesis in this JSON structure:
   }
 }`;
 
-export const analyzeProblemAwareness = async (chunkingResults, progressCallback, apiKey) => {
+export const analyzeProblemAwareness = async (input, progressCallback, apiKey) => {
   if (!apiKey) {
     throw new Error('OpenAI API key is required. Please set your API key first.');
   }
@@ -109,20 +125,36 @@ export const analyzeProblemAwareness = async (chunkingResults, progressCallback,
   await updateProgress(2, progressCallback);
 
   try {
-    // Extract the complete transcript from chunking results
-    if (!chunkingResults || !chunkingResults.finalSummary) {
-      console.error('Invalid chunking results:', chunkingResults);
-      throw new Error('Invalid chunking results. Expected finalSummary to be present.');
+    // Extract the transcript and pain analysis from input
+    if (!input || (!input.transcript && !input.painAnalysis)) {
+      console.error('Invalid input:', input);
+      throw new Error('Invalid input. Transcript or pain analysis is required.');
     }
-
-    // Get the complete analysis from the chunks
-    const analysisContent = chunkingResults.finalSummary;
     
-    if (!analysisContent) {
-      throw new Error('No analysis content found in chunking results.');
+    // Get the pain analysis results - handle both object and string formats
+    let painResults = input.painAnalysis;
+    let analysisContent = '';
+    
+    if (typeof painResults === 'string') {
+      try {
+        painResults = JSON.parse(painResults);
+        console.log('Successfully parsed string pain results');
+      } catch (e) {
+        console.warn('Could not parse pain results as JSON, using as-is', e);
+      }
     }
-
-    console.log('Starting problem awareness matrix analysis with content:', analysisContent);
+    
+    // If we have a finalSummary property (for backward compatibility)
+    if (input.finalSummary) {
+      analysisContent = input.finalSummary;
+    } else if (painResults) {
+      // Use pain analysis as the primary content
+      analysisContent = JSON.stringify(painResults);
+    } else {
+      throw new Error('No valid analysis content found in input.');
+    }
+    
+    console.log('Starting problem awareness matrix analysis with content length:', analysisContent.length);
 
     // Initial awareness matrix analysis
     const matrixResponse = await openai.chat.completions.create({
